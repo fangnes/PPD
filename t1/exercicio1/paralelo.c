@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 	int myRank, nSlaves, tag;
 	int posA, posB, nElementos, numLinhas, i, j, x, source, jobs;
 	MPI_Status status;
+    FILE *mFile, *sFile;
 
 	// Iniciando MPI
 	MPI_Init(&argc, &argv);
@@ -41,17 +42,17 @@ int main(int argc, char **argv)
 	nElementos = numLinhas / (4 * (nSlaves - 1));
 	jobs = numLinhas / nElementos;
 
-	/*
+    /*
 	printf("JOBS: %d\n", jobs);
 	printf("nElementos: %d\n", nElementos);
-	*/
-	
+    */	
+
 	if(myRank == 0) // Mestre
 	{
 		
 		int vetorA[atoi(argv[1])], vetorB[atoi(argv[1])];
 		int slave = 1, k;
-		FILE *pFile, *mFile;
+		FILE *pFile;
 	
 		// Calculo de quando jobs serão ao todo	
 		pFile = fopen(argv[2], "r");
@@ -72,16 +73,17 @@ int main(int argc, char **argv)
 			// Print DEBUG
 			//printf("Master sending: %d, %d\n", vetorA[posA], vetorA[posA + 1]);
 			
-			MPI_Send(&vetorA[posA], nElementos, MPI_INT, slave, tag, MPI_COMM_WORLD);
+			MPI_Send(vetorA + posA, nElementos, MPI_INT, slave, tag, MPI_COMM_WORLD);
 			posA += nElementos;
 		}
 
 		posB = 0;
 		// Envia mais um job para o slave que terminar seu job
-		for(i = 1; i <= jobs - 2; i++)
+		for(i = 1; i <= jobs; i++)
 		{
-			MPI_Recv(&vetorB[posB], nElementos, MPI_INT, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
-			fprintf(mFile, "MASTER received: %d, %d, %d, %d\n", vetorB[posB], vetorB[posB + 1], vetorB[posB + 2], vetorB[posB + 3]);
+            //printf("presi\n");
+			MPI_Recv(vetorB + posB, nElementos, MPI_INT, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
+			printf("MASTER received: %d, %d, %d, %d\n", vetorB[posB], vetorB[posB + 1], vetorB[posB + 2], vetorB[posB + 3]);
 			posB += nElementos;
 
 			
@@ -96,24 +98,28 @@ int main(int argc, char **argv)
 			// Print DEBUG
 			//for(k = 0; k < nElementos; k++)
 			//	printf("Master sending vetorA[%d]: %d\n", k + posA, vetorA[k + posA]);
-			//printf("Master sending: %d, %d | i = %d\n", vetorA[posA], vetorA[posA + 1], i);
-			MPI_Send(&vetorA[posA], nElementos, MPI_INT, slave, tag, MPI_COMM_WORLD);
-			posA += nElementos;
+
+            if(i <= jobs - 2)
+            {
+                //printf("Master sending: %d, %d | i = %d\n", vetorA[posA], vetorA[posA + 1], i);
+    			MPI_Send(vetorA + posA, nElementos, MPI_INT, slave, tag, MPI_COMM_WORLD);
+	    		posA += nElementos;
+            }
 		}
 
+
+
 		for(i = 0; i < numLinhas; i++)
-			printf("%d, \n", vetorB[i]);
+			printf("%d, ", vetorB[i]);
+        printf("\n");
 
 		vetorA[0] = -1;
 		for(slave = 1; slave <= nSlaves - 1; slave++)
-			MPI_Send(&vetorA[0], 1, MPI_INT, slave, tag, MPI_COMM_WORLD);
+			MPI_Send(vetorA, 1, MPI_INT, slave, tag, MPI_COMM_WORLD);
 	}
 	else // Escravo
 	{
 		int slaveVetorA[nElementos], slaveVetorB[nElementos], k;
-		FILE *sFile;
-
-		sFile = fopen("slave_log", "a+");
 
 		MPI_Recv(slaveVetorA, nElementos, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
 
@@ -133,13 +139,14 @@ int main(int argc, char **argv)
 				slaveVetorB[x] = slaveVetorA[i];
 			}		
 
-			fprintf(sFile, "Slave SENDING elements: %d, %d, %d, %d\n", slaveVetorB[0], slaveVetorB[1], slaveVetorB[2], slaveVetorB[3]);
-			MPI_Send(&slaveVetorB[0], nElementos, MPI_INT, 0, tag, MPI_COMM_WORLD);
+        	printf("SLAVE sending elements: %d, %d, %d, %d\n", slaveVetorB[0], slaveVetorB[1], slaveVetorB[2], slaveVetorB[3]);
+			MPI_Send(slaveVetorB, nElementos, MPI_INT, 0, tag, MPI_COMM_WORLD);
 
 			MPI_Recv(slaveVetorA, nElementos, MPI_INT, 0, tag, MPI_COMM_WORLD, &status);
 			//printf("Slave RECEIVED elements: %d, %d\n", slaveVetorA[0], slaveVetorA[1]);
 		}
 	}
+
 
 	printf("This is the end of %d\n", myRank);
 
