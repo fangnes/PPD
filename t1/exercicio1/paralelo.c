@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	int myRank, nSlaves, tag;
 	int posA, posB; 
 	int nElementos, numLinhas, jobs;
-	int i;
+	int i, r;
 	MPI_Status status;
     
 	//FILE *mFile, *sFile;
@@ -70,20 +70,24 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &nSlaves);
 
 	numLinhas = atoi(argv[1]);					// Número de elementos a serem lidos
-	if((numLinhas % (4 * (nSlaves - 1))) != 0)
+	r = numLinhas % (4 * (nSlaves - 1));
+
+	if(r == 0)
 		nElementos = numLinhas / (4 * (nSlaves - 1));		// Número de elementos a serem enviados para os escravos
 	else
 	{
 		printf("ERROR: division of jobs not integer\n");
 		return -1;
 	}
+
 	jobs = numLinhas / nElementos;					// Número de tarefas total a serem distribuidas entre os escravos
 
-	/*
+	/*	
 	printf("###############################\n");
 	printf("nElementos: %d\n", nElementos);
 	printf("slaves: %d\n", nSlaves);
 	printf("numLinhas: %d\n", numLinhas);
+	printf("jobs: %d\n", jobs);
 	printf("###############################\n");
 	*/
 	posA = 0;
@@ -101,10 +105,11 @@ int main(int argc, char **argv)
 		readFile(argv[2], vetorA, numLinhas);
 		//printVetor(vetorA, 0, numLinhas, mFile);
 		//fprintf(mFile, "\n");
-		
-		// Envia os dois primeiros jobs para os slaves		
+	
+		// Envia os primeiros jobs para os slaves		
 		for(slave = 1; slave < nSlaves; slave++)
 		{
+			//printf("slave: %d\n", slave);
 			//fprintf(mFile, "Master sending: ");
 			//printVetor(vetorA, posA, nElementos, mFile);
 			MPI_Send(vetorA + posA, nElementos, MPI_INT, slave, tag, MPI_COMM_WORLD);
@@ -116,7 +121,7 @@ int main(int argc, char **argv)
 		for(i = 1; i <= jobs; i++)
 		{
 			MPI_Recv(vetorB + posB, nElementos, MPI_INT, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
-
+			
 			/*
 			fprintf(mFile, "MASTER received:");
 			printVetor(vetorB, posB, nElementos, mFile);
@@ -127,7 +132,7 @@ int main(int argc, char **argv)
 			merge(vetorB, 0, posB - nElementos, posB);
 			slave = status.MPI_SOURCE;
 
-        		if(i <= jobs - 2)
+			if(i <= jobs - nSlaves + 1)
             		{
  				/*
     				fprintf(mFile, "Master sending: ");
@@ -142,8 +147,10 @@ int main(int argc, char **argv)
 		// Manda sinal de término da tarefa para os slaves
 		vetorA[0] = -1;
 		for(slave = 1; slave < nSlaves; slave++)
+		{
 			MPI_Send(vetorA, 1, MPI_INT, slave, tag, MPI_COMM_WORLD);
-		
+		}
+
 		for(i = 0; i < numLinhas; i++)
 			fprintf(pFile, "%d\n", vetorB[i]);
 
