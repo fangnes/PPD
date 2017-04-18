@@ -56,7 +56,7 @@ void readFile(char *fileName, int *vetor, int numLines)
 
 void insertionSort(int value, int *vector, int index, int flag, int nextStage)
 {
-	int i, j, val, aux, tag;
+	int i, j, val, aux, tag= 50;
 
 	val = value;
 
@@ -83,7 +83,7 @@ void insertionSort(int value, int *vector, int index, int flag, int nextStage)
 int main(int argc, char **argv)
 {
 	int vectorA[atoi(argv[1])], vectorB[atoi(argv[1])];
-	int myRank, size, numLines, tag;
+	int myRank, size, numLines, tag = 50;
 	int nPositions;
 	int i;
 	char *fileName;
@@ -153,8 +153,8 @@ int main(int argc, char **argv)
 									insertionSort(vectorA[i], internVector, i, 0, nextStage);
 
 				// Debug print
-				/*printf("i = %d\n", i);
-				printf("-> ");
+				//printf("i = %d\n", i);
+				/*printf("-> ");
 				for(j = 0; j < nPositions; j++)
 					printf("%d, ", internVector[j]);
 				printf("\n\n-----------------------------------\n\n");*/
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 					printf("will receive\n");
 
 			// Receive first value from 'myRank - 1'
-			MPI_Recv(&receivedValue, 1, MPI_INT, myRank - 1, tag, MPI_COMM_WORLD, &status);
+			MPI_Recv(&receivedValue, 1, MPI_INT, previousStage, tag, MPI_COMM_WORLD, &status);
 			
 			// Debug print
 			if(myRank == 1)
@@ -233,6 +233,8 @@ int main(int argc, char **argv)
 			//printf("Finishing process %d\n", myRank);
 		}
 	}
+
+    MPI_Finalize();
 
 	return 0;
 }
