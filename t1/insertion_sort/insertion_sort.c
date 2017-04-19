@@ -8,14 +8,7 @@ void printVector(int *vetor, int begin, int size, FILE *file)
 	int i;
 
 	for(i = begin; i < begin + size; i++)
-		fprintf(file, "%d\n ", vetor[i]);
-/*
-	printf("begin: %d, size: %d, \n", begin, size);
-	printf("printing: ");
-*/
-/*	for(i = begin; i < size; i++)
-		printf("%d, ", vetor[i]);
-	printf("\n");*/
+		fprintf(file, "%d\n", vetor[i]);
 }
 
 // Lê 'numLines' números do arquivo passado por parâmetro
@@ -33,30 +26,9 @@ void readFile(char *fileName, int *vetor, int numLines)
 	fclose(pFile);	
 }
 
-/*void insertionSort(int *vectorA, int *vectorB, int numElements)
-{
-	int i, j, val, aux;
-
-	for(i = 0; i < numElements; i++)
-	{
-		val = vectorA[i];
-		for(j = 0; j < i; j++)
-		{
-			if(val < vectorB[j]) 
-			{
-				aux = vectorB[j];
-				vectorB[j] = val;
-				val = aux;
-			}
-		}
-		vectorB[i] = val;
-		printf("vectorB[i]: %d\n", vectorB[i]);
-	}
-}*/
-
 void insertionSort(int value, int *vector, int index, int flag, int nextStage)
 {
-	int i, j, val, aux, tag= 50;
+	int i, j, val, aux, tag = 50;
 
 	val = value;
 
@@ -72,12 +44,7 @@ void insertionSort(int value, int *vector, int index, int flag, int nextStage)
 	if(flag == 0)
 		vector[index] = val;
 	else
-	{
 		MPI_Send(&val, 1, MPI_INT, nextStage, tag, MPI_COMM_WORLD);
-		// Debug print
-		if(nextStage == 1)
-			printf("sending: %d\n", val);
-	}
 }
 
 int main(int argc, char **argv)
@@ -126,16 +93,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{ // Parallel case
-		int internVector[nPositions], nextStage, j;
+		int nextStage, j;
 		int signal = -1;
 
 		memset(internVector, 0, nPositions * sizeof(int));
-
-		// Debug print
-		/*printf("######################################\n");
-		printf("---------- Parallel Case ----------\n");
-		printf("myRank: %d\n", myRank);
-		printf("######################################\n");*/
 
 		// Defining process nextStage
 		if(myRank + 1 != size)
@@ -147,90 +108,52 @@ int main(int argc, char **argv)
 		{ // Rank0
 
 			for(i = 0; i < numLines; i++)
-			{
 				// If internVector is full, 'flag' parameter is changed to '1'
-				(i > nPositions) ? 	insertionSort(vectorA[i], internVector, nPositions - 1, 1, nextStage) :
-									insertionSort(vectorA[i], internVector, i, 0, nextStage);
+				(i > nPositions - 1) ? 	insertionSort(vectorA[i], vectorB, nPositions - 1, 1, nextStage) :
+										insertionSort(vectorA[i], vectorB, i, 0, nextStage);
 
-				// Debug print
-				//printf("i = %d\n", i);
-				/*printf("-> ");
-				for(j = 0; j < nPositions; j++)
-					printf("%d, ", internVector[j]);
-				printf("\n\n-----------------------------------\n\n");*/
-			}
-
-			// Debug print
-			//printf("Sending exit signal to %d | size: %d | myRank: %d\n", i, size, myRank);
-			
 			// Send signal to finish nextStage rank1
-			//MPI_Send(&signal, 1, MPI_INT, nextStage, tag, MPI_COMM_WORLD);
+			MPI_Send(&signal, 1, MPI_INT, nextStage, tag, MPI_COMM_WORLD);
 
 			// Receive from all nextStages their ordered vectors
-			/*for(i = 1; i < size; i++)
-			{
-				MPI_Recv(&vectorB + (nPositions * (i - 1)), nPositions, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
-				
-				// Debug print
-				//printf("Received from %d\n", i);
-			}*/
+			for(i = 1; i < size; i++)
+				MPI_Recv(vectorB + (nPositions * i), nPositions, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
 
 			printVector(vectorB, 0, numLines, finalFile);
 		}
 		else
 		{ // Rank'i'
+			int internVector[nPositions];
 			int receivedValue, index, previousStage;
 
 			previousStage = myRank - 1;
 			receivedValue = 0;
 			index = 0;
 
-			// Debug print
-			//printf("myRank: %d\n", myRank);
-
-			printf("testing\n");
-
-			// Debug print
-			if(myRank == 1)
-					printf("will receive\n");
-
 			// Receive first value from 'myRank - 1'
 			MPI_Recv(&receivedValue, 1, MPI_INT, previousStage, tag, MPI_COMM_WORLD, &status);
 			
-			// Debug print
-			if(myRank == 1)
-					printf("OK\n");
-
 			// This nextStage will be executed until 'signal' be sent by previous nextStage
 			while(receivedValue != -1)
 			{
-				// Debug print
-				if(myRank == 1)
-					printf("received: %d\n", receivedValue);
-
 				// If internVector is full, 'flag' parameter is changed to '1'
-				(index == nPositions - 1) ? insertionSort(receivedValue, internVector, index, 0, nextStage) :
-											insertionSort(receivedValue, internVector, index, 1, nextStage);
-				
-				// Increases 'index' of 'internVector' of this nextStage
-				if(index < nPositions - 1)
+				(index == nPositions) ? insertionSort(receivedValue, internVector, nPositions - 1, 1, nextStage) :
+										insertionSort(receivedValue, internVector, index, 0, nextStage);
+			
+				// Increases 'index' of 'internVector' of this stage
+				if(index <= nPositions - 1)
 					index++;
 
-				// Receive another value from previous nextStage
-				MPI_Recv(&receivedValue, 1, MPI_INT, myRank - 1, tag, MPI_COMM_WORLD, &status);
+				// Receive another value from 'previousStage'
+				MPI_Recv(&receivedValue, 1, MPI_INT, previousStage, tag, MPI_COMM_WORLD, &status);
 			}
 
 			// Send 'signal' to finish the next nextStage
-			//MPI_Send(&signal, 1, MPI_INT, nextStage, tag, MPI_COMM_WORLD);
-
-			// Debug print
-			//printf("%d proccess received exit signal\n", myRank);
+			if(nextStage != 0)
+				MPI_Send(&signal, 1, MPI_INT, nextStage, tag, MPI_COMM_WORLD);
 
 			// Send 'internVector' to nextStage 0
 			MPI_Send(internVector, nPositions, MPI_INT, 0, tag, MPI_COMM_WORLD);
-
-			// Debug print
-			//printf("Finishing process %d\n", myRank);
 		}
 	}
 
