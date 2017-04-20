@@ -93,10 +93,8 @@ int main(int argc, char **argv)
 	}
 	else
 	{ // Parallel case
-		int nextStage, j;
+		int nextStage;
 		int signal = -1;
-
-		memset(internVector, 0, nPositions * sizeof(int));
 
 		// Defining process nextStage
 		if(myRank + 1 != size)
@@ -119,7 +117,7 @@ int main(int argc, char **argv)
 			for(i = 1; i < size; i++)
 				MPI_Recv(vectorB + (nPositions * i), nPositions, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
 
-			printVector(vectorB, 0, numLines, finalFile);
+			printVector(vectorB, 0, numLines - 1, finalFile);
 		}
 		else
 		{ // Rank'i'
