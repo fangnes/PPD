@@ -1,3 +1,19 @@
+/*
+    O objetivo do trabalho é implementar, usando a biblioteca MPI, uma versão paralela usando o modelo pipeline do 
+    algoritmo de ordenação Insertion Sort.
+    O programa deverá receber como parâmetros de entrada um número N, representando o número de valores a serem 
+    testados, e o nome de um arquivo, que conterá a lista de valores inteiros a serem ordenados.
+    Utilizar 3 casos de teste para realização das medições no cluster (20k, 40k e 80k).
+    A saída que deve ser gerada é a lista ordenada (crescente) dos valores de entrada (1 valor por linha) 
+    e também o tempo de execução da aplicação.
+*/
+
+//COMPILE: mpicc pipeline.c -o pipeline
+//EXECUTE: mpirun -np (1 - 2 - 4 - 8) ./pipeline (10000 - 50000 - 100000) FILE_WITH_INTEGERS_TO_SORT
+
+//Autor: Felipe Angnes
+//Data: 17/04/2017
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
