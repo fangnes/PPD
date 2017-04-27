@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "mpi.h"
 
 void printVector(int *vetor, int begin, int size, FILE *file)
@@ -69,6 +70,7 @@ int main(int argc, char **argv)
 	int myRank, size, numLines, tag = 50;
 	int nPositions;
 	int i;
+	int ti, tf, timeval;
 	char *fileName;
 	FILE *finalFile;
 	MPI_Status status;
@@ -102,10 +104,19 @@ int main(int argc, char **argv)
 	// Number of positions for intern vectors
 	nPositions = numLines / size;
 	
+	gettimeofday(&ti, NULL);
+
 	if(size == 1)
 	{ // Sequencial case
 		for(i = 0; i < numLines; i++)
 			insertionSort(vectorA[i], vectorB, i, 0, 0);
+
+		gettimeofday(&tf, NULL);
+		printVector(vectorB, 0, numLines - 1, finalFile);
+
+		printf("%ds%dms%dus\n", (int)(tf.tv_sec - ti-tv_sec),
+					(int)(tf.tv_usec - ti.tv_usec) / 1000,
+					(int)(tf.tv_usec - ti.tv_usec) % 1000);
 	}
 	else
 	{ // Parallel case
@@ -132,6 +143,12 @@ int main(int argc, char **argv)
 			// Receive from all nextStages their ordered vectors
 			for(i = 1; i < size; i++)
 				MPI_Recv(vectorB + (nPositions * i), nPositions, MPI_INT, i, tag, MPI_COMM_WORLD, &status);
+
+			gettimeofday(&tf, NULL);
+
+			printf("%ds%dms%dus\n", (int)(tf.tv_sec - ti.tv_sec),
+						(int)(tf.tv_usec - ti.tv_usec) / 1000,
+						(int)(tf.tv_usec - ti.tv_usec) % 1000);
 
 			printVector(vectorB, 0, numLines - 1, finalFile);
 		}
