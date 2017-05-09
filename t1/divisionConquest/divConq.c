@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 #include <math.h>
 #include "mpi.h"
 
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
 	int vectorA[atoi(argv[1])], vectorB[atoi(argv[1])];
 	int myRank, size, numLines, tag = 50;
 	int i;
+	struct timeval ti, tf;
 	char *fileName;
 	FILE *finalFile;
 	MPI_Status status;
@@ -108,7 +110,18 @@ int main(int argc, char **argv)
 	}
 
 	if(size == 1){
+		FILE *pFile;
+
+		pFile = fopen("finalFile.txt", "w+");
+		gettimeofday(&ti, NULL);
 		Sort(vectorA, 0, numLines);
+		gettimeofday(&tf, NULL);
+		printVector(vectorA, 0, numLines, pFile);
+		fprintf(pFile, "%ds%dms%dus\n", (int)(tf.tv_sec - ti.tv_sec),
+										(int)(tf.tv_usec - ti.tv_usec) / 1000,
+										(int)(tf.tv_usec - ti.tv_usec) % 1000);
+		fclose(pFile);
+
 	}else{
 		int newVectorSize, nextVectorSize, previousVectorSize, children, *nodeVector;
 		int treeSize, treeLevel = 0;
@@ -117,6 +130,10 @@ int main(int argc, char **argv)
 
 		if(myRank == 0)
 		{
+			FILE *pFile;
+
+			pFile = fopen("finalFile.txt", "w+");
+			gettimeofday(&ti, NULL);
 			while(treeLevel < treeSize){
 				if(treeLevel != treeSize)
 					children = myRank + pow(2, treeLevel);
@@ -149,8 +166,12 @@ int main(int argc, char **argv)
 				previousVectorSize = newVectorSize;
 				newVectorSize = newVectorSize * 2;
 			}
-			// ESCREVER NO ARQUIVO
-
+			gettimeofday(&tf, NULL);
+			printVector(nodeVector, 0, numLines, pFile);
+			fprintf(pFile, "%ds%dms%dus\n", (int)(tf.tv_sec - ti.tv_sec),
+										(int)(tf.tv_usec - ti.tv_usec) / 1000,
+										(int)(tf.tv_usec - ti.tv_usec) % 1000);
+			fclose(pFile);
 		}
 		else
 		{
@@ -163,32 +184,20 @@ int main(int argc, char **argv)
 			father = status.MPI_SOURCE;
 			treeLevel = log2(numLines / newVectorSize);
 			myLevel = treeLevel;
-			/*printf("%d - treeLevel = %d\n", myRank, treeLevel);*/
 
-			if(treeLevel != treeSize){
-				//newVectorSize = numLines / pow(2, treeLevel);
+			if(treeLevel != treeSize)
 				nextVectorSize = newVectorSize / 2;
-			}else{
-				/*nextVectorSize = newVectorSize;
-				newVectorSize = nextVectorSize * 2;*/
+			else
 				nodeVector = (int*)realloc(nodeVector, sizeof(int) * newVectorSize);
-			}
 
 			while(treeLevel < treeSize){
-				//if(treeLevel != treeSize)
 				children = myRank + pow(2, treeLevel);
-
 				newVectorSize = newVectorSize / 2;
-				/*printf("%d -> %d\n", myRank, children);*/
 				MPI_Send(nodeVector + newVectorSize, newVectorSize, MPI_INT, children, tag, MPI_COMM_WORLD);
 				nodeVector = (int*)realloc(nodeVector, sizeof(int) * newVectorSize);
 				treeLevel++;
-				//newVectorSize = numLines / pow(2, treeLevel);
 				nextVectorSize = newVectorSize;
 			}
-			for(i = 0; i < nextVectorSize; i++)
-					printf("%d - nodeVector[i]: %d\n", myRank, nodeVector[i]);
-				printf("\n\n\n");
 
 			Sort(nodeVector, 0, newVectorSize);
 			previousVectorSize = newVectorSize;
@@ -203,13 +212,8 @@ int main(int argc, char **argv)
 				Merge(nodeVector, 0, previousVectorSize, newVectorSize);
 				treeLevel--;
 				previousVectorSize = newVectorSize;
-				//newVectorSize = newVectorSize * 2;
 			}
-			printf("%d sending %d values\n", myRank, newVectorSize);
 			MPI_Send(nodeVector, newVectorSize, MPI_INT, father, tag, MPI_COMM_WORLD);
-
-			/*for(i = 0; i < newVectorSize; i++)
-				printf("%d -> nodeVector[%d] = %d\n", myRank, i, nodeVector[i]);*/
 		}
 	}
 
