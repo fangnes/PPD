@@ -74,7 +74,7 @@ void Sort(int array[], int begin, int end)
 
 int main(int argc, char **argv)
 {
-	int vectorA[atoi(argv[1])], vectorB[atoi(argv[1])];
+	int vectorA[atoi(argv[1])];
 	int myRank, size, numLines, tag = 50;
 	int i;
 	struct timeval ti, tf;
@@ -91,11 +91,9 @@ int main(int argc, char **argv)
 
 	// Cleaning vectors
 	memset(vectorA, 0, numLines * sizeof(int));
-	memset(vectorB, 0, numLines * sizeof(int));
 
 	// Reading 'numLines' from 'fileName'
 	readFile(fileName, vectorA, numLines);
-
 
 	// Starting MPI
 	MPI_Init(&argc, &argv);
@@ -156,7 +154,7 @@ int main(int argc, char **argv)
 			Sort(nodeVector, 0, nextVectorSize);
 			previousVectorSize = nextVectorSize;
 			treeLevel--;
-
+			printf("q?\n");
 			while(treeLevel >= 0){
 				children = myRank + pow(2, treeLevel);
 				nodeVector = (int*)realloc(nodeVector, sizeof(int) * newVectorSize);
@@ -178,7 +176,7 @@ int main(int argc, char **argv)
 			int father, maxValuesToReceive, myLevel;
 
 			maxValuesToReceive = numLines / 2;
-			nodeVector = (int*)malloc(sizeof(int) * numLines);
+			nodeVector = (int*)malloc(sizeof(int) * maxValuesToReceive);
 			MPI_Recv(nodeVector, maxValuesToReceive, MPI_INT, MPI_ANY_SOURCE, tag, MPI_COMM_WORLD, &status);
 			MPI_Get_count(&status, MPI_INT, &newVectorSize);
 			father = status.MPI_SOURCE;
