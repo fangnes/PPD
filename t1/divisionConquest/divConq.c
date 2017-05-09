@@ -107,52 +107,33 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if(size == 1)
-	{
+	if(size == 1){
 		Sort(vectorA, 0, numLines);
-
-		for(i = 0; i < numLines; i++)
-			printf("%d\n", vectorA[i]);
-	}
-	else
-	{
+	}else{
 		int newVectorSize, nextVectorSize, previousVectorSize, children, *nodeVector;
 		int treeSize, treeLevel = 0;
 		
 		treeSize = log2(size);
 
-
-
 		if(myRank == 0)
 		{
-			/*for(i = 0; i < numLines; i++)
-				printf("%d, ", vectorA[i]);*/
-			printf("\n");
 			while(treeLevel < treeSize){
 				if(treeLevel != treeSize)
 					children = myRank + pow(2, treeLevel);
 				
-				/*printf("children: %d\n", children);
-				printf("treeLevel: %d\n", treeLevel);*/
 				newVectorSize = numLines / pow(2, treeLevel);
 				nextVectorSize = newVectorSize / 2;
 
 				if(treeLevel == 0){
 					nodeVector = (int*)malloc(sizeof(int) * newVectorSize);
 					memcpy(nodeVector, vectorA, sizeof(int) * newVectorSize);
-				}else
+				}else{
 					nodeVector = (int*)realloc(nodeVector, sizeof(int) * newVectorSize);
+				}
 
-				/*for(i = 0; i < newVectorSize; i++)
-					printf("%d, ", nodeVector[i]);
-				printf("\n\n\n");*/
 				MPI_Send(nodeVector + nextVectorSize, nextVectorSize, MPI_INT, children, tag, MPI_COMM_WORLD);
 				treeLevel++;
 			}
-
-			for(i = 0; i < nextVectorSize; i++)
-					printf("%d - nodeVector[i]: %d\n", myRank, nodeVector[i]);
-				printf("\n\n\n");
 
 			nodeVector = (int*)realloc(nodeVector, sizeof(int) * nextVectorSize);
 			Sort(nodeVector, 0, nextVectorSize);
@@ -168,9 +149,7 @@ int main(int argc, char **argv)
 				previousVectorSize = newVectorSize;
 				newVectorSize = newVectorSize * 2;
 			}
-
-			for(i = 0; i < numLines; i++)
-				printf("nodeVector[%d] = %d\n", i, nodeVector[i]);
+			// ESCREVER NO ARQUIVO
 
 		}
 		else
