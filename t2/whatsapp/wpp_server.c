@@ -63,7 +63,7 @@ void waitForCommand()
 	cmd = (char*)malloc(MAXSIZE);
 
 	// Temporario
-	sprintf(me.ip, "127.0.0.1");
+	//sprintf(me.ip, "127.0.0.1");
 
 	printf("#");
 	scanf("%[^\n]%*c", cmd);
@@ -330,10 +330,12 @@ void loadOnlineContacts()
 	cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
 	contactsFile = fopen(CONTACTSFILE, "r");
 
-	while((read = getline(&cttData, &len, contactsFile)) != -1)
-	{
-		ctt = contactData(cttData);
-		connectToContact(ctt, 1);
+	if(contactsFile != NULL){
+		while((read = getline(&cttData, &len, contactsFile)) != -1)
+		{
+			ctt = contactData(cttData);
+			connectToContact(ctt, 1);
+		}
 	}
 }
 
@@ -365,16 +367,22 @@ void writeNoSentMessage(char *name, char *msg)
 
 void sendNoSentMessage(struct stContact *ctt)
 {
+	ssize_t read;
+	size_t len = 0;
 	FILE *conversationFile;
-	char *conversationFileName;
+	char *conversationFileName, *message;
 
 	online[nContacts].ctt = ctt;
 
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
+	message = (char*)malloc(MAXSIZE);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, online[nContacts].ctt->name);	// forma char array que possui nome do arquivo de mensagens
-	conversationFile = fopen(conversationFileName, "r");						// abre arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "w+");								// abre arquivo de mensagens
 
+	/*while((read = getline(&message, &len, contactsFile)) != -1){
+		printf("%s\n", cttData);
+	}*/
 	//TODO: implementar envio de mensagens pendentes
 }
 
@@ -421,6 +429,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	printf("Name: ");
 	fgets(me.name, NAMESIZE, stdin);
 	me.name[strcspn(me.name, "\n")] = 0;
+	printf("IP: %s\n", me.ip);
 
 	loadOnlineContacts();
 	waitForCommand();
