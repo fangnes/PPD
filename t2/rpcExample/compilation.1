@@ -1,0 +1,7 @@
+
+rpcgen calc.x
+
+gcc calc_svc.c calc_server.c calc_xdr.c -o calc_server 
+
+gcc calc_client.c calc_clnt.c calc_xdr.c -o calc_client 
+
