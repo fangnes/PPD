@@ -1,0 +1,15 @@
+500k:
+1 processo: 0s177ms328us
+2 processos: 0s103ms372us
+4 processos: 0s70ms157us
+8 processos: 0s51ms996us
+16 processos: 0s47ms990us
+
+1kk:
+1 processo: 0s359ms37us
+2 processos: 0s207ms294us
+4 processos: 0s131ms635us
+8 processos: 0s91ms423us
+16 processos: 0s80ms558us
+
+2kk:
