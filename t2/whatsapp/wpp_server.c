@@ -133,8 +133,10 @@ void parseCommand(char *cmd)
 			name = adjustPointer(cmd, 2);
 			sprintf(conversationFileName, "%s_%s.txt", me.name, name);
 			conversationFile = fopen(conversationFileName, "r");
-			while((read = getline(&message, &len, conversationFile)) != -1){
-				printf("%s", message);
+			if(conversationFile != NULL){
+				while((read = getline(&message, &len, conversationFile)) != -1){
+					printf("%s", message);
+				}
 			}
 			break;
 		case 's':
@@ -172,8 +174,10 @@ void parseCommand(char *cmd)
 				cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
 				contactsFile = fopen(CONTACTSFILE, "r");
 
-				while((read = getline(&cttData, &len, contactsFile)) != -1){
-					printf("%s\n", cttData);
+				if(contactsFile != NULL){
+					while((read = getline(&cttData, &len, contactsFile)) != -1){
+						printf("%s\n", cttData);
+					}
 				}
 			break;
 		default:
@@ -267,12 +271,14 @@ int checkExistentContact(struct stContact *ctt)
 	cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
 	contactsFile = fopen(CONTACTSFILE, "r");
 
-	while((read = getline(&cttData, &len, contactsFile)) != -1)
-	{
-		cttLocal = contactData(cttData);
-		if((strcmp(ctt->name, cttLocal->name) == 0) ||
-			strcmp(ctt->ip, cttLocal->ip) == 0)
-			return -1;
+	if(contactsFile != NULL){
+		while((read = getline(&cttData, &len, contactsFile)) != -1)
+		{
+			cttLocal = contactData(cttData);
+			if((strcmp(ctt->name, cttLocal->name) == 0) ||
+				strcmp(ctt->ip, cttLocal->ip) == 0)
+				return -1;
+		}
 	}
 	return 0;
 }
@@ -378,7 +384,7 @@ void sendNoSentMessage(struct stContact *ctt)
 	message = (char*)malloc(MAXSIZE);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, online[nContacts].ctt->name);	// forma char array que possui nome do arquivo de mensagens
-	conversationFile = fopen(conversationFileName, "w+");								// abre arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "w+");	// verificar w+				// abre arquivo de mensagens
 
 	/*while((read = getline(&message, &len, contactsFile)) != -1){
 		printf("%s\n", cttData);
