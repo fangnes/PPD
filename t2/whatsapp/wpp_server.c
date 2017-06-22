@@ -452,12 +452,12 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 	}
 }
 
-void *read_message_1_svc()
+void *read_message_1_svc(void *pvoid, struct svc_req *rqstp)
 {
 	//TODO: implementar rotina que marca mensagem como lida
 }
 
-void *i_am_online_1_svc(struct stContact *ctt)
+void *i_am_online_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
 
 }
