@@ -368,11 +368,11 @@ void sendNoSentMessage(struct stContact *ctt)
 	FILE *conversationFile;
 	char *conversationFileName;
 
-	online[i].ctt = ctt;
+	online[nContacts].ctt = ctt;
 
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 
-	sprintf(conversationFileName, "%s_%s.txt", me.name, online[i].ctt->name);	// forma char array que possui nome do arquivo de mensagens
+	sprintf(conversationFileName, "%s_%s.txt", me.name, online[nContacts].ctt->name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "r");						// abre arquivo de mensagens
 
 	//TODO: implementar envio de mensagens pendentes
