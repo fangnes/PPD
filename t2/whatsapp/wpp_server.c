@@ -13,6 +13,8 @@
 #include <netdb.h>			// NI_MAXHOST
 //#include <sys/socket.h>		// getnameinfo()
 
+// Threads
+#include <pthread.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -39,6 +41,14 @@ struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos con
 struct stContact me;
 int nContacts = 0;									// Numero de contatos no array
 
+// Threads
+pthread_t tStartServer;								// Thread para a funcao START_SERVER
+pthread_t tAckServer;								// Thread para a funcao ACK_SERVER
+pthread_t tSendMessage;								// Thread para a funcao SEND_MESSAGE
+pthread_t tAddRequest;								// Thread para a funcao ADD_REQUEST
+pthread_t tReadMessage;								// Thread para a funcao READ_MESSAGE
+pthread_t tIAmOnline;								// Thread para a funcao I_AM_ONLINE
+
 // Declaracoes de rotinas
 void waitForCommand();												// Aguarda comando
 void parseCommand(char *cmd);										// Faz a depuracao do comando e executa ele
@@ -54,6 +64,7 @@ void loadOnlineContacts();											// Carrega lista de contatos para o array d
 void writeSentMessage(int cttIndex);								// Escreve mensagem enviada no arquivo
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
+void startThreads();												// Inicia todas as threads
 
 // Rotina que le o comando
 void waitForCommand()
@@ -248,7 +259,7 @@ void connectToContact(struct stContact *ctt, int id)
 {
 	void *pvoid;
 
-	if(!(online[nContacts].cl = clnt_create(ctt->ip, WPPPROG, WPPVERS, "udp"))){
+	if(!(online[nContacts].cl = clnt_create(ctt->ip, WPPPROG, WPPVERS, "tcp"))){
 		clnt_pcreateerror(ctt->ip);
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
@@ -390,6 +401,18 @@ void sendNoSentMessage(struct stContact *ctt)
 		printf("%s\n", cttData);
 	}*/
 	//TODO: implementar envio de mensagens pendentes
+}
+
+void startThreads()
+{
+	int result;
+
+	result = pthread_create(&tStartServer, NULL, start_server_1_svc, NULL);
+	result = pthread_create(&tAckServer, NULL, ack_server_1_svc, NULL);
+	result = pthread_create(&tSendMessage, NULL, send_message_1_svc, NULL);
+	result = pthread_create(&tAddRequest, NULL, add_request_1_svc, NULL);
+	result = pthread_create(&tReadMessage, NULL, read_message_1_svc, NULL);
+	result = pthread_create(&tIAmOnline, NULL, i_am_online_1_svc, NULL);
 }
 
 /*****************************************************************************************/
