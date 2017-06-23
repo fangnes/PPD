@@ -36,6 +36,25 @@ struct stConnectedContacts
 	CLIENT *cl;
 };
 
+// Estruturas para parametros das threads
+struct stVoidParam                                  // function(void *pvoid, struct svc_req *rqstp)
+{
+    void *pvoid;
+    struct svc_req *rqstp;
+};
+
+struct stMessageParam                               // function(struct stMessage *msg, struct svc_req *rqstp)
+{
+    struct stMessage *msg;
+    struct svc_req *rqstp;
+};
+
+struct stContactParam                               // function(struct stContact *ctt, struct svc_req *rqstp)
+{
+    struct stContact *ctt;
+    struct svc_req *rqstp;
+};
+
 // Variaveis globais
 struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
 struct stContact me;
@@ -407,12 +426,16 @@ void startThreads()
 {
 	int result;
 
-	result = pthread_create(&tStartServer, NULL, start_server_1_svc, NULL);
-	result = pthread_create(&tAckServer, NULL, ack_server_1_svc, NULL);
-	result = pthread_create(&tSendMessage, NULL, send_message_1_svc, NULL);
-	result = pthread_create(&tAddRequest, NULL, add_request_1_svc, NULL);
-	result = pthread_create(&tReadMessage, NULL, read_message_1_svc, NULL);
-	result = pthread_create(&tIAmOnline, NULL, i_am_online_1_svc, NULL);
+    struct stVoidParam      *voidParam = (struct stVoidParam*)malloc(sizeof(struct stVoidParam));
+    struct stMessageParam   *msgParam = (struct stMessageParam*)malloc(sizeof(struct stMessageParam));
+    struct stContactParam   *cttParam = (struct stContactParam*)malloc(sizeof(struct stContactParam));
+
+	result = pthread_create(&tStartServer, NULL, start_server_1_svc, voidParam);
+	result = pthread_create(&tAckServer, NULL, ack_server_1_svc, voidParam);
+	result = pthread_create(&tSendMessage, NULL, send_message_1_svc, msgParam);
+	result = pthread_create(&tAddRequest, NULL, add_request_1_svc, cttParam);
+	result = pthread_create(&tReadMessage, NULL, read_message_1_svc, voidParam);
+	result = pthread_create(&tIAmOnline, NULL, i_am_online_1_svc, cttParam);
 }
 
 /*****************************************************************************************/
@@ -443,7 +466,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 
 		family = ifa->ifa_addr->sa_family;
 
-		if(family == AF_INET && strcmp(ifa->ifa_name, "eth0") == 0){
+		if(family == AF_INET && strcmp(ifa->ifa_name, "eno1") == 0){
 			s = getnameinfo(ifa->ifa_addr,
 							sizeof(struct sockaddr_in),
 							me.ip, NI_MAXHOST,
