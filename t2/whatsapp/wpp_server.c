@@ -63,7 +63,7 @@ int nContacts = 0;									// Numero de contatos no array
 
 // Threads
 pthread_t cttThreads[MAXUSERS];						// Threads para atender requisicoes dos contatos
-pthread_t test;
+pthread_t mainThread;								// Thread que atendera novas requisicoes
 /*pthread_t tStartServer;							// Thread para a funcao START_SERVER
 pthread_t tAckServer;								// Thread para a funcao ACK_SERVER
 pthread_t tSendMessage;								// Thread para a funcao SEND_MESSAGE
@@ -168,7 +168,6 @@ void parseCommand(char *cmd)
 					printf("%s", message);
 				}
 			}
-			waitForCommand();
 			break;
 		case 's':
 			
@@ -193,7 +192,6 @@ void parseCommand(char *cmd)
 				sprintf(msg->message, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
 				writeSentMessage(i);									// escreve a mensagem no arquivo
 			}
-			waitForCommand();
 			break;
 		case 'c':
 				cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
@@ -205,12 +203,12 @@ void parseCommand(char *cmd)
 					}
 				}
 				fclose(contactsFile);
-				waitForCommand();
 			break;
 		default:
 			printf("Not valid command\n");
 			break;
 	}
+	waitForCommand();
 }
 
 // Rotina que desloca o ponteiro de um array para ignorar
@@ -502,7 +500,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	
 	
 	loadOnlineContacts();
-	result = pthread_create(&test, NULL, waitForCommand, NULL);
+	result = pthread_create(&mainThread, NULL, waitForCommand, NULL);
 	//waitForCommand();
 }
 
