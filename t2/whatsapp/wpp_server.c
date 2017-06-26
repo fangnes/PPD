@@ -344,8 +344,8 @@ int sendAddRequest(struct stContact *me, struct stContact *ctt)
 	int i, *r;
 
 	i = searchForConnectedContacts(ctt->name);	// busca indice do contato "alvo"
-
-	r = add_request_1(ctt, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
+	printf("i: %d\n", i);
+	r = add_request_1(me, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
 
 	return 1;
 }
