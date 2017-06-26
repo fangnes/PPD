@@ -144,8 +144,8 @@ void parseCommand(char *cmd)
 				if(checkExistentContact(ctt) == 0){				// Verifica se o contato ja foi adicionado
 					connectToContact(ctt, 1);					// Conecta ao contato
 					//TODO: pegar dados do usuario corrente e colocar em 'cttMe'
-					//if(sendAddRequest(&me, ctt) == 1)
-					addContact(ctt);							// Adiciona contato no arquivto 'contacts.txt'
+					if(sendAddRequest(&me, ctt) == 1)
+						addContact(ctt);							// Adiciona contato no arquivto 'contacts.txt'
 					//TODO: else destruindo conexão previamente estabelecida
 				}else{
 					printf("Contact already added\n");			// Alerta de contato ja adicionado
