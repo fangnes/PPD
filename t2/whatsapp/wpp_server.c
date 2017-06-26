@@ -307,7 +307,7 @@ char *getName(char *array)
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
 	printf("1.1\n");
-	while((array[i] != ' ') || (array[i] != ':'))					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
+	while(array[i] != ' ' && array[i] != ':')					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
 	{
 		printf("i: %d \t c: %c\n", i, array[i]);
 		name[i] = array[i];
