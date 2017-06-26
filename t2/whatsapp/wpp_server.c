@@ -89,7 +89,7 @@ void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes
 //void startThreads();												// Inicia todas as threads
 
 // Rotina que le o comando
-void waitForCommand()
+void *waitForCommand()
 {
 	char *cmd;
 
@@ -452,7 +452,7 @@ void startThreads()
 /*****************************************************************************************/
 /*****************************************************************************************/
 
-void *threadFunc()
+/*void *threadFunc()
 {
 	printf("\nYEZ\n");
 }
@@ -461,13 +461,13 @@ void startThreade()
 {
 	int result;
 	result = pthread_create(&test, NULL, threadFunc, NULL);
-}
+}*/
 
 // Rotina para inicializar o servidor
 void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 {
 	struct ifaddrs *ifaddr, *ifa;
-	int family, s, n;
+	int family, s, n, result;
 	char host[NI_MAXHOST], name[NAMESIZE];
 
 	if(getifaddrs(&ifaddr) == -1){
@@ -498,11 +498,12 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	me.name[strcspn(me.name, "\n")] = 0;
 	printf("IP: %s\n", me.ip);
 
-	startThreade();
+	//startThreade();
 	
 	
 	loadOnlineContacts();
-	waitForCommand();
+	result = pthread_create(&test, NULL, waitForCommand, NULL);
+	//waitForCommand();
 }
 
 
