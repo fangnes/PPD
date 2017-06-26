@@ -62,8 +62,9 @@ struct stContact me;
 int nContacts = 0;									// Numero de contatos no array
 
 // Threads
-pthread_t cttThreads[MAXUSERS];
-/*pthread_t tStartServer;								// Thread para a funcao START_SERVER
+pthread_t cttThreads[MAXUSERS];						// Threads para atender requisicoes dos contatos
+pthread_t test;
+/*pthread_t tStartServer;							// Thread para a funcao START_SERVER
 pthread_t tAckServer;								// Thread para a funcao ACK_SERVER
 pthread_t tSendMessage;								// Thread para a funcao SEND_MESSAGE
 pthread_t tAddRequest;								// Thread para a funcao ADD_REQUEST
@@ -451,6 +452,16 @@ void startThreads()
 /*****************************************************************************************/
 /*****************************************************************************************/
 
+void *threadFunc()
+{
+	printf("YEZ\n");
+}
+
+void startThreade()
+{
+	int result;
+	result = pthread_create(&test, NULL, threadFunc, NULL);
+}
 
 // Rotina para inicializar o servidor
 void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
@@ -470,7 +481,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 
 		family = ifa->ifa_addr->sa_family;
 
-		if(family == AF_INET && strcmp(ifa->ifa_name, "eth0") == 0){
+		if(family == AF_INET && strcmp(ifa->ifa_name, "eno1") == 0){
 			s = getnameinfo(ifa->ifa_addr,
 							sizeof(struct sockaddr_in),
 							me.ip, NI_MAXHOST,
@@ -487,32 +498,23 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	me.name[strcspn(me.name, "\n")] = 0;
 	printf("IP: %s\n", me.ip);
 
+	startThreade();
+	
+	
 	loadOnlineContacts();
 	waitForCommand();
 }
 
-void *threadFunc()
-{
-	printf("YEZ\n");
-}
-
-void startThreade()
-{
-	pthread_t test;
-	int result;
-	result = pthread_create(&test, NULL, threadFunc, NULL);
-}
 
 void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 {
-	int result;
+/*	int result;
 	struct ifaddrs *ifaddr, *ifa;
 	int family, s, n;
 	char host[NI_MAXHOST], name[NAMESIZE];
-
+*/
 	printf("CONNECTED OK\nSTARTING THREAD\n");
-	startThreade();
-	sleep(2);
+	/*sleep(2);
 
 	if(getifaddrs(&ifaddr) == -1){
 		perror("getifaddrs");
@@ -544,7 +546,7 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 
 	loadOnlineContacts();
 	waitForCommand();
-
+*/
 }
 
 void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
