@@ -309,7 +309,7 @@ char *getName(char *array)
 	printf("1.1\n");
 	while((array[i] != ' ') || (array[i] != ':'))					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
 	{
-		printf("i: %d\n", i);
+		printf("i: %d \t c: %s\n", i, array[i]);
 		name[i] = array[i];
 		i++;
 	}
