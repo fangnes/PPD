@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>			// error()
+#include <unistd.h>			// sleep()
 #include "wpp.h"
 
 #define IPSIZE 			15
@@ -61,13 +62,14 @@ struct stContact me;
 int nContacts = 0;									// Numero de contatos no array
 
 // Threads
-pthread_t tStartServer;								// Thread para a funcao START_SERVER
+pthread_t cttThreads[MAXUSERS];
+/*pthread_t tStartServer;								// Thread para a funcao START_SERVER
 pthread_t tAckServer;								// Thread para a funcao ACK_SERVER
 pthread_t tSendMessage;								// Thread para a funcao SEND_MESSAGE
 pthread_t tAddRequest;								// Thread para a funcao ADD_REQUEST
 pthread_t tReadMessage;								// Thread para a funcao READ_MESSAGE
 pthread_t tIAmOnline;								// Thread para a funcao I_AM_ONLINE
-
+*/
 // Declaracoes de rotinas
 void waitForCommand();												// Aguarda comando
 void parseCommand(char *cmd);										// Faz a depuracao do comando e executa ele
@@ -83,7 +85,7 @@ void loadOnlineContacts();											// Carrega lista de contatos para o array d
 void writeSentMessage(int cttIndex);								// Escreve mensagem enviada no arquivo
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
-void startThreads();												// Inicia todas as threads
+//void startThreads();												// Inicia todas as threads
 
 // Rotina que le o comando
 void waitForCommand()
@@ -91,9 +93,6 @@ void waitForCommand()
 	char *cmd;
 
 	cmd = (char*)malloc(MAXSIZE);
-
-	// Temporario
-	//sprintf(me.ip, "127.0.0.1");
 
 	printf("#");
 	scanf("%[^\n]%*c", cmd);
@@ -131,24 +130,24 @@ void parseCommand(char *cmd)
 	{
 		case 'i':
 
-			if(nContacts >= MAXUSERS){
+			if(nContacts >= MAXUSERS){							// Verifica se numero maximo de contatos foi atingido
 				printf("Numero maximo de contatos atingido\n");
 				break;
 			}else{
 				cttData = (char*)malloc(MAXSIZE);
 				memset(cttData, 0, MAXSIZE);
-				memcpy(cttData, cmd, strlen(cmd));
-				cttData = adjustPointer(cttData, 2);
-				ctt = contactData(cttData);
+				memcpy(cttData, cmd, strlen(cmd));				// Copia conteudo de 'cmd' para 'cttData'
+				cttData = adjustPointer(cttData, 2);			// Retira o 'i ' do inicio do char array
+				ctt = contactData(cttData);						// Extrai nome e ip de 'cttData' e coloca dentro da estrutura 'ctt'
 
-				if(checkExistentContact(ctt) == 0){	
-					connectToContact(ctt, 1);
+				if(checkExistentContact(ctt) == 0){				// Verifica se o contato ja foi adicionado
+					connectToContact(ctt, 1);					// Conecta ao contato
 					//TODO: pegar dados do usuario corrente e colocar em 'cttMe'
 					//if(sendAddRequest(&me, ctt) == 1)
-					addContact(ctt);
+					addContact(ctt);							// Adiciona contato no arquivto 'contacts.txt'
 					//TODO: else destruindo conexão previamente estabelecida
 				}else{
-					printf("stContact already exists\n");
+					printf("Contact already added\n");			// Alerta de contato ja adicionado
 				}
 			}
 			break;
@@ -160,14 +159,15 @@ void parseCommand(char *cmd)
 			message = (char*)malloc(MSGSIZE + 5);
 			conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 			
-			name = adjustPointer(cmd, 2);
-			sprintf(conversationFileName, "%s_%s.txt", me.name, name);
-			conversationFile = fopen(conversationFileName, "r");
+			name = adjustPointer(cmd, 2);											// Retira o 'l ' do inicio do char array
+			sprintf(conversationFileName, "%s_%s.txt", me.name, name);				// Monta nome de arquivo que ira conter o historico de conversa entre os contatos
+			conversationFile = fopen(conversationFileName, "r");					// Abre arquivo de histórico de conversas
 			if(conversationFile != NULL){
-				while((read = getline(&message, &len, conversationFile)) != -1){
+				while((read = getline(&message, &len, conversationFile)) != -1){	// Exibe o historico de conversas linha por linha
 					printf("%s", message);
 				}
 			}
+			waitForCommand();
 			break;
 		case 's':
 			
@@ -180,23 +180,17 @@ void parseCommand(char *cmd)
 			message = adjustPointer(message, 2);						// retira o 's' da string
 			name = getName(message);									// extrai o nome do contato da string
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
-			i = searchForConnectedContacts(name);
-			if(i == -1){			// verifica se o contato está na lista de conectados
+			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
+			if(i == -1){												// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
-				printf("try\n");
 				writeNoSentMessage(name, message);
 				printf("ERROR: stContact doesn't exists\n");
 			}else{
-				printf("aqui\n");
 				sprintf(msg->message, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
 				online[i].msg = msg;
-				send_message_1(online[i].msg, online[i].cl);
-				sprintf(msg->message, "(S) %s: %s", me.name, message);
-				writeSentMessage(i);
-				if(*ret == 1){	// envia mensagem para o contato
-					//TODO: MARCAR COMO ENVIADO
-
-				}
+				send_message_1(online[i].msg, online[i].cl);			// envia mensagem chamando procedimento remoto
+				sprintf(msg->message, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+				writeSentMessage(i);									// escreve a mensagem no arquivo
 			}
 			waitForCommand();
 			break;
@@ -209,13 +203,13 @@ void parseCommand(char *cmd)
 						printf("%s\n", cttData);
 					}
 				}
+				fclose(contactsFile);
+				waitForCommand();
 			break;
 		default:
 			printf("Not valid command\n");
 			break;
 	}
-
-	waitForCommand();
 }
 
 // Rotina que desloca o ponteiro de um array para ignorar
@@ -243,15 +237,15 @@ struct stContact *contactData(char *contactData)
 
 	ctt = (struct stContact*)malloc(sizeof(struct stContact));
 	memset(ctt, 0, sizeof(struct stContact));
-	index = strlen(contactData);
+	index = strlen(contactData);									// verifica tamanho total do char array
 
-	for(i = 0; i < index; i++){
-		if((contactData[i] > 0x40 && contactData[i] < 0x5B) ||
-		   (contactData[i] > 0x60 && contactData[i] < 0x7B)) {
+	for(i = 0; i < index; i++){										// percorre array verificando cada caractere
+		if((contactData[i] > 0x40 && contactData[i] < 0x5B) ||		// verifica, atraves do valor hex do caractere, se corresponde a uma letra ou numero
+		   (contactData[i] > 0x60 && contactData[i] < 0x7B)) {		// se for uma letra, comeca a preencher o char array ctt->name
 			ctt->name[nameIndex] = contactData[i];
 			nameIndex++;
 		}else{
-			if((contactData[i] > 0x2F && contactData[i] < 0x3A) || 
+			if((contactData[i] > 0x2F && contactData[i] < 0x3A) || // se for um numero, comeca a preencher o char array ctt->ip
 				contactData[i] == 0x2E) {
 				ctt->ip[ipIndex] = contactData[i];
 				ipIndex++;
@@ -259,7 +253,7 @@ struct stContact *contactData(char *contactData)
 		}
 	}
 
-	return ctt;
+	return ctt;														// retorna estrutura com nome e ip do contato
 }
 
 // Rotina que adiciona o contato localmente
@@ -282,7 +276,6 @@ void connectToContact(struct stContact *ctt, int id)
 		clnt_pcreateerror(ctt->ip);
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
-		//(id == 1) ? ack_server_2(pvoid, online[nContacts].cl) : ack_server_1(pvoid, online[nContacts].cl);
 		ack_server_1(pvoid, online[nContacts].cl);
 		online[nContacts].ctt = ctt;
 		nContacts++;
@@ -290,6 +283,7 @@ void connectToContact(struct stContact *ctt, int id)
 	}
 }
 
+// Verifica se contato ja existe na lista de contatos
 int checkExistentContact(struct stContact *ctt)
 {
 	ssize_t read;
@@ -301,18 +295,18 @@ int checkExistentContact(struct stContact *ctt)
 	cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
 	contactsFile = fopen(CONTACTSFILE, "r");
 
-	if(contactsFile != NULL){
-		while((read = getline(&cttData, &len, contactsFile)) != -1)
+	if(contactsFile != NULL){											// se o arquivo foi aberto com sucesso
+		while((read = getline(&cttData, &len, contactsFile)) != -1)		// percorre linha por linha
 		{
-			cttLocal = contactData(cttData);
-			if((strcmp(ctt->name, cttLocal->name) == 0) ||
-				strcmp(ctt->ip, cttLocal->ip) == 0)
-				return -1;
+			cttLocal = contactData(cttData);							// organiza a informacao do arquivto na esctrutura 'ctt'
+			if((strcmp(ctt->name, cttLocal->name) == 0) ||				// verifica se o nome extraido do arquivo e igual ao recebido por parametro
+				strcmp(ctt->ip, cttLocal->ip) == 0)						// verifica se o ip extraido do arquivo e igual ao recebido por parametro
+				return -1;												// se algum nome ou ip presente no arquivo for igual ao recebido por parametro retorna -1
 		}
 	}
-	return 0;
+	return 0;															// se nao houver nome ou ip, igual ao recebido por parametro, no arquivo retorna 0
 }
-
+// Extrai nome do array
 char *getName(char *array)
 {
 	char *name;
@@ -321,40 +315,43 @@ char *getName(char *array)
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
 
-	while(array[i] != ' ')
+	while(array[i] != ' ')					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
 	{
 		name[i] = array[i];
 		i++;
 	}
 
-	array = adjustPointer(array, i+1);
+	array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
 	return name;
 }
 
+// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
 int searchForConnectedContacts(char *name)
 {
 	int i;
 
 	for(i = 0; i < MAXUSERS; i++)
 	{
-		if(online[i].ctt != NULL)
-			if(strcmp(online[i].ctt->name, name) == 0)
+		if(online[i].ctt != NULL)						// percorre array de contatos online
+			if(strcmp(online[i].ctt->name, name) == 0)	// analisa o nome dos contatos
 				return i;
 	}
 	return -1;
 }
 
+// Solicita ao 'ctt' para ser adicionado na lista de contatos "alvo"
 int sendAddRequest(struct stContact *me, struct stContact *ctt)
 {
 	int i, *r;
 
-	i = searchForConnectedContacts(ctt->name);
+	i = searchForConnectedContacts(ctt->name);	// busca indice do contato "alvo"
 
-	r = add_request_1(ctt, online[i].cl);
+	r = add_request_1(ctt, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
 
 	return 1;
 }
 
+// Carrega lista de contatos para o array de contatos online
 void loadOnlineContacts()
 {
 	ssize_t read;
@@ -364,17 +361,18 @@ void loadOnlineContacts()
 	struct stContact *ctt;
 
 	cttData = (char*)malloc(NAMESIZE+IPSIZE+1);
-	contactsFile = fopen(CONTACTSFILE, "r");
+	contactsFile = fopen(CONTACTSFILE, "r");						// abre arquivo de contatos
 
 	if(contactsFile != NULL){
-		while((read = getline(&cttData, &len, contactsFile)) != -1)
+		while((read = getline(&cttData, &len, contactsFile)) != -1)	// percorre o arquivo linha por linha
 		{
-			ctt = contactData(cttData);
-			connectToContact(ctt, 1);
+			ctt = contactData(cttData);								// coloca informacoes extraidas do arquivo em uma estrutura 'ctt'
+			connectToContact(ctt, 1);								// tenta conectar no contato
 		}
 	}
 }
 
+// Escreve mensagem enviada no arquivo
 void writeSentMessage(int cttIndex)
 {
 	FILE *conversationFile;
@@ -384,10 +382,11 @@ void writeSentMessage(int cttIndex)
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, online[cttIndex].ctt->name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile= fopen(conversationFileName, "a+");								// abre arquivo de mensagens
-	fprintf(conversationFile, "%s\n", online[cttIndex].msg->message);				// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
+	fprintf(conversationFile, "%s\n", online[cttIndex].msg->message);					// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
 	fclose(conversationFile);
 }
 
+// Escreve mensagem não enviada no arquivo
 void writeNoSentMessage(char *name, char *msg)
 {
 	FILE *conversationFile;
@@ -401,6 +400,10 @@ void writeNoSentMessage(char *name, char *msg)
 	fclose(conversationFile);
 }
 
+
+
+
+// Envia mensagens pendentes para 'ctt' ** NOT READY **
 void sendNoSentMessage(struct stContact *ctt)
 {
 	ssize_t read;
@@ -421,7 +424,8 @@ void sendNoSentMessage(struct stContact *ctt)
 	}*/
 	//TODO: implementar envio de mensagens pendentes
 }
-
+/*
+// Inicia todas as threads
 void startThreads()
 {
 	int result;
@@ -437,7 +441,7 @@ void startThreads()
 	result = pthread_create(&tReadMessage, NULL, read_message_1_svc, voidParam);
 	result = pthread_create(&tIAmOnline, NULL, i_am_online_1_svc, cttParam);
 }
-
+*/
 /*****************************************************************************************/
 /*****************************************************************************************/
 /*****************************************************************************************/
@@ -466,7 +470,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 
 		family = ifa->ifa_addr->sa_family;
 
-		if(family == AF_INET && strcmp(ifa->ifa_name, "eno1") == 0){
+		if(family == AF_INET && strcmp(ifa->ifa_name, "eth0") == 0){
 			s = getnameinfo(ifa->ifa_addr,
 							sizeof(struct sockaddr_in),
 							me.ip, NI_MAXHOST,
@@ -487,9 +491,60 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	waitForCommand();
 }
 
+void *threadFunc()
+{
+	printf("YEZ\n");
+}
+
+void startThreade()
+{
+	pthread_t test;
+	int result;
+	result = pthread_create(&test, NULL, threadFunc, NULL);
+}
+
 void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 {
-	printf("CONNECTED1 OK\n");
+	int result;
+	struct ifaddrs *ifaddr, *ifa;
+	int family, s, n;
+	char host[NI_MAXHOST], name[NAMESIZE];
+
+	printf("CONNECTED OK\nSTARTING THREAD\n");
+	startThreade();
+	sleep(2);
+
+	if(getifaddrs(&ifaddr) == -1){
+		perror("getifaddrs");
+		exit(EXIT_FAILURE);
+	}
+
+	for(ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++){
+		if(ifa->ifa_addr == NULL)
+			continue;
+
+		family = ifa->ifa_addr->sa_family;
+
+		if(family == AF_INET && strcmp(ifa->ifa_name, "eth0") == 0){
+			s = getnameinfo(ifa->ifa_addr,
+							sizeof(struct sockaddr_in),
+							me.ip, NI_MAXHOST,
+							NULL, 0, NI_NUMERICHOST);
+			if(s != 0){
+				printf("getnameinfo() failed: %s\n", gai_strerror(s));
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+
+	printf("Name: ");
+	fgets(me.name, NAMESIZE, stdin);
+	me.name[strcspn(me.name, "\n")] = 0;
+	printf("IP: %s\n", me.ip);
+
+	loadOnlineContacts();
+	waitForCommand();
+
 }
 
 void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
