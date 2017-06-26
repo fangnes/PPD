@@ -287,6 +287,7 @@ int checkExistentContact(struct stContact *ctt)
 	}
 	return 0;															// se nao houver nome ou ip, igual ao recebido por parametro, no arquivo retorna 0
 }
+
 // Extrai nome do array
 char *getName(char *array)
 {
@@ -302,7 +303,7 @@ char *getName(char *array)
 		i++;
 	}
 
-	array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
+	//array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
 	return name;
 }
 
