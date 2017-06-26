@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	CLIENT *cl;
 	void *pvoid;
 
-	if(!(cl = clnt_create(argv[1], WPPPROG, WPPVERS, "tcp")))
+	if(!(cl = clnt_create("127.0.0.1", WPPPROG, WPPVERS, "tcp")))
 	{
 		clnt_pcreateerror(argv[1]);
 		return 1;

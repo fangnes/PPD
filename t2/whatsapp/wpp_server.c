@@ -37,25 +37,6 @@ struct stConnectedContacts
 	CLIENT *cl;
 };
 
-// Estruturas para parametros das threads
-struct stVoidParam                                  // function(void *pvoid, struct svc_req *rqstp)
-{
-    void *pvoid;
-    struct svc_req *rqstp;
-};
-
-struct stMessageParam                               // function(struct stMessage *msg, struct svc_req *rqstp)
-{
-    struct stMessage *msg;
-    struct svc_req *rqstp;
-};
-
-struct stContactParam                               // function(struct stContact *ctt, struct svc_req *rqstp)
-{
-    struct stContact *ctt;
-    struct svc_req *rqstp;
-};
-
 // Variaveis globais
 struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
 struct stContact me;
@@ -86,6 +67,7 @@ void loadOnlineContacts();											// Carrega lista de contatos para o array d
 void writeSentMessage(int cttIndex);								// Escreve mensagem enviada no arquivo
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
+void writeReceivedMessage(char *message);							// Escreve mensagem recebida
 //void startThreads();												// Inicia todas as threads
 
 // Rotina que le o comando
@@ -275,7 +257,7 @@ void connectToContact(struct stContact *ctt, int id)
 		clnt_pcreateerror(ctt->ip);
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
-		ack_server_1(pvoid, online[nContacts].cl);
+		//ack_server_1(pvoid, online[nContacts].cl);
 		online[nContacts].ctt = ctt;
 		nContacts++;
 
@@ -314,7 +296,7 @@ char *getName(char *array)
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
 
-	while(array[i] != ' ')					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
+	while(array[i] != ' ' || array[i] != ':')					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
 	{
 		name[i] = array[i];
 		i++;
@@ -423,24 +405,19 @@ void sendNoSentMessage(struct stContact *ctt)
 	}*/
 	//TODO: implementar envio de mensagens pendentes
 }
-/*
-// Inicia todas as threads
-void startThreads()
+
+/*void writeReceivedMessage(char *message)
 {
-	int result;
+	FILE *conversationFile;
+	char *conversationFileName;
 
-    struct stVoidParam      *voidParam = (struct stVoidParam*)malloc(sizeof(struct stVoidParam));
-    struct stMessageParam   *msgParam = (struct stMessageParam*)malloc(sizeof(struct stMessageParam));
-    struct stContactParam   *cttParam = (struct stContactParam*)malloc(sizeof(struct stContactParam));
+	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 
-	result = pthread_create(&tStartServer, NULL, start_server_1_svc, voidParam);
-	result = pthread_create(&tAckServer, NULL, ack_server_1_svc, voidParam);
-	result = pthread_create(&tSendMessage, NULL, send_message_1_svc, msgParam);
-	result = pthread_create(&tAddRequest, NULL, add_request_1_svc, cttParam);
-	result = pthread_create(&tReadMessage, NULL, read_message_1_svc, voidParam);
-	result = pthread_create(&tIAmOnline, NULL, i_am_online_1_svc, cttParam);
-}
-*/
+	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
+	fprintf(conversationFile, "%s\n", msg);					// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
+	fclose(conversationFile);
+}*/
 /*****************************************************************************************/
 /*****************************************************************************************/
 /*****************************************************************************************/
@@ -550,7 +527,18 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 
 void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 {
-	printf("%s\n", msg->message);
+	FILE *conversationFile;
+	char *conversationFileName, *name;
+
+	name = (char*)malloc(NAMESIZE);
+	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
+
+	name = getName(msg->message);
+
+	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
+	fprintf(conversationFile, "%s\n", msg->message);
+	fclose(conversationFile);
 }
 
 int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
