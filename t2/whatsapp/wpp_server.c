@@ -454,7 +454,7 @@ void startThreads()
 
 void *threadFunc()
 {
-	printf("YEZ\n");
+	printf("\nYEZ\n");
 }
 
 void startThreade()
@@ -513,7 +513,7 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	int family, s, n;
 	char host[NI_MAXHOST], name[NAMESIZE];
 */
-	printf("CONNECTED OK\nSTARTING THREAD\n");
+	printf("CONNECTED OK\n");
 	/*sleep(2);
 
 	if(getifaddrs(&ifaddr) == -1){
