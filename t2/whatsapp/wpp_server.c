@@ -306,14 +306,15 @@ char *getName(char *array)
 
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
-
-	while(array[i] != ' ' || array[i] != ':')					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
+	printf("1.1\n");
+	while((array[i] != ' ') || (array[i] != ':'))					// os primeiros caracteres do array recebido por parametro corresponderao ao nome do contato
 	{
 		name[i] = array[i];
 		i++;
 	}
-
+	printf("1.2\n");
 	array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
+	printf("1.3\n");
 	return name;
 }
 
