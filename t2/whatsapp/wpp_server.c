@@ -159,20 +159,30 @@ void parseCommand(char *cmd)
 			memset(msg, 0, sizeof(struct stMessage));
 
 			memcpy(message, cmd, strlen(cmd));
+
 			message = adjustPointer(message, 2);						// retira o 's' da string
+			printf("1\n");
 			name = getName(message);									// extrai o nome do contato da string
+			printf("2\n");
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
+			printf("3\n");
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
+			printf("4\n");
 			if(i == -1){												// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
 				writeNoSentMessage(name, message);
 				printf("ERROR: stContact doesn't exists\n");
 			}else{
+				printf("5\n");
 				sprintf(msg->message, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
+				printf("6\n");
 				online[i].msg = msg;
 				send_message_1(online[i].msg, online[i].cl);			// envia mensagem chamando procedimento remoto
+				printf("7\n");
 				sprintf(msg->message, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+				printf("8\n");
 				writeSentMessage(i);									// escreve a mensagem no arquivo
+				printf("9\n");
 			}
 			break;
 		case 'c':
@@ -303,7 +313,7 @@ char *getName(char *array)
 		i++;
 	}
 
-	//array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
+	array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
 	return name;
 }
 
