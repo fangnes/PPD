@@ -72,7 +72,7 @@ pthread_t tReadMessage;								// Thread para a funcao READ_MESSAGE
 pthread_t tIAmOnline;								// Thread para a funcao I_AM_ONLINE
 */
 // Declaracoes de rotinas
-void waitForCommand();												// Aguarda comando
+void *waitForCommand();												// Aguarda comando
 void parseCommand(char *cmd);										// Faz a depuracao do comando e executa ele
 char *adjustPointer(char *array, int pos);							// Ajusta o ponteiro de inicio do array
 struct stContact *contactData(char *contactData);					// Coloca dados do array em uma struct stContact
