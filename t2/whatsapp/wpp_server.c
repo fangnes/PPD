@@ -163,11 +163,6 @@ void parseCommand(char *cmd)
 			message = adjustPointer(message, 2);						// retira o 's' da string
 			name = getName(message);									// extrai o nome do contato da string
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
-			
-			for(i = 0; i < nContacts; i++)
-			{
-				printf("online[i].ctt->name: %s\n", online[i].ctt->name);
-			}
 
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			if(i == -1){												// verifica se o contato está na lista de conectados
@@ -266,10 +261,7 @@ void connectToContact(struct stContact *ctt)
 		clnt_pcreateerror(ctt->ip);
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
-		//ack_server_1(pvoid, online[nContacts].cl);
-		printf("INSIDE connectToContact() FUNCTION\n");
 		online[nContacts].ctt = ctt;
-		printf("online[nContacts].ctt->name: %s\n", online[nContacts].ctt->name);
 		nContacts++;
 	}
 }
@@ -323,7 +315,6 @@ int searchForConnectedContacts(char *name)
 	for(i = 0; i < MAXUSERS; i++)
 	{
 		if(online[i].ctt != NULL)						// percorre array de contatos online
-			printf("online[i].ctt->name: %s\n", online[i].ctt->name);
 			if(strcmp(online[i].ctt->name, name) == 0)	// analisa o nome dos contatos
 				return i;
 	}
@@ -501,23 +492,13 @@ void *send_message_1_svc(char *msg, struct svc_req *rqstp)
 	memset(message, 0, MSGSIZE);
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
-	for(i = 0; i < nContacts; i++)
-		printf("1 - online[i].ctt->name: %s\n", online[i].ctt->name);
-
 	memcpy(message, msg, strlen(msg));
 	name = getName(msg);
-
-	for(i = 0; i < nContacts; i++)
-		printf("2 - online[i].ctt->name: %s\n", online[i].ctt->name);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
 	fprintf(conversationFile, "%s\n", message);
 	fclose(conversationFile);
-
-		for(i = 0; i < nContacts; i++)
-		printf("3 - online[i].ctt->name: %s\n", online[i].ctt->name);
-
 }
 
 int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
@@ -540,10 +521,6 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 			addContact(cttLocal);
 		}
 		*ret = 1;
-
-		for(i = 0; i < nContacts; i++)
-			printf("\n########online[i].ctt->name: %s\n\n", online[i].ctt->name);
-
 		return ret;
 	}
 }
