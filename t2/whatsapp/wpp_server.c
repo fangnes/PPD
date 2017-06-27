@@ -33,7 +33,6 @@
 struct stConnectedContacts
 {
 	struct stContact *ctt;							// Estrutura contém nome e ip
-	struct stMessage *msg;							// Buffer de mensagem
 	CLIENT *cl;
 };
 
@@ -64,7 +63,7 @@ char *getName(char *array);											// Extrai nome do array
 int searchForConnectedContacts(char *name);							// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
 int sendAddRequest(struct stContact *me, struct stContact *ctt);	// Solicita ao 'ctt' para ser adicionado na lista de contatos "alvo"
 void loadOnlineContacts();											// Carrega lista de contatos para o array de contatos online
-void writeSentMessage(int cttIndex);								// Escreve mensagem enviada no arquivo
+void writeSentMessage(char *name, char *msg);						// Escreve mensagem enviada no arquivo
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
 void writeReceivedMessage(char *message);							// Escreve mensagem recebida
@@ -99,7 +98,7 @@ void parseCommand(char *cmd)
 	// s variable
 	int i, *ret;
 	char *conversationFileName;
-	struct stMessage *msg;
+	char *msg;
 	void *pvoid;
 
 	// c variables
@@ -154,9 +153,10 @@ void parseCommand(char *cmd)
 		case 's':
 			
 			name = (char*)malloc(NAMESIZE);
-			message = (char*)malloc(MAXSIZE);
-			msg = (struct stMessage*)malloc(sizeof(struct stMessage));
-			memset(msg, 0, sizeof(struct stMessage));
+			message = (char*)malloc(MSGSIZE);
+			msg = (char*)malloc(NAMESIZE + MSGSIZE + 6);
+			memset(message, 0, MSGSIZE);
+			memset(msg, 0, NAMESIZE + MSGSIZE + 6);
 
 			memcpy(message, cmd, strlen(cmd));
 
@@ -175,11 +175,11 @@ void parseCommand(char *cmd)
 				writeNoSentMessage(name, message);
 				printf("ERROR: stContact doesn't exists\n");
 			}else{
-				sprintf(msg->message, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
-				online[i].msg = msg;
-				send_message_1(online[i].msg, online[i].cl);			// envia mensagem chamando procedimento remoto
-				sprintf(msg->message, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
-				writeSentMessage(i);									// escreve a mensagem no arquivo
+				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
+				//online[i].msg = msg;
+				send_message_1(msg, online[i].cl);			// envia mensagem chamando procedimento remoto
+				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
 			}
 			break;
 		case 'c':
@@ -308,7 +308,7 @@ char *getName(char *array)
 		name[i] = array[i];
 		i++;
 	}
-	array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
+	//array = adjustPointer(array, i+1);		// ajusta o ponteiro do array para excluir o nome e o espaco logo apos o nome
 	return name;
 }
 
@@ -362,16 +362,16 @@ void loadOnlineContacts()
 }
 
 // Escreve mensagem enviada no arquivo
-void writeSentMessage(int cttIndex)
+void writeSentMessage(char *name, char *msg)
 {
 	FILE *conversationFile;
 	char *conversationFileName;
 
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 
-	sprintf(conversationFileName, "%s_%s.txt", me.name, online[cttIndex].ctt->name);	// forma char array que possui nome do arquivo de mensagens
-	conversationFile= fopen(conversationFileName, "a+");								// abre arquivo de mensagens
-	fprintf(conversationFile, "%s\n", online[cttIndex].msg->message);					// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
+	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
+	fprintf(conversationFile, "%s\n", msg);						// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
 	fclose(conversationFile);
 }
 
@@ -487,7 +487,7 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	printf("CONNECTED OK\n");
 }
 
-void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
+void *send_message_1_svc(char *msg, struct svc_req *rqstp)
 {
 	FILE *conversationFile;
 	char *conversationFileName, *name, *message;
@@ -503,8 +503,8 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	for(i = 0; i < nContacts; i++)
 		printf("1 - online[i].ctt->name: %s\n", online[i].ctt->name);
 
-	memcpy(message, msg->message, strlen(msg->message));
-	name = getName(msg->message);
+	memcpy(message, msg, strlen(msg));
+	name = getName(msg);
 
 	for(i = 0; i < nContacts; i++)
 		printf("2 - online[i].ctt->name: %s\n", online[i].ctt->name);
