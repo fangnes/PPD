@@ -491,6 +491,7 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 {
 	FILE *conversationFile;
 	char *conversationFileName, *name, *message;
+	int i;
 
 	name = (char*)malloc(NAMESIZE);
 	message = (char*)malloc(MSGSIZE);
@@ -499,13 +500,23 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	memset(message, 0, MSGSIZE);
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
+	for(i = 0; i < nContacts; i++)
+		printf("1 - online[i].ctt->name: %s\n", online[i].ctt->name);
+
 	memcpy(message, msg->message, strlen(msg->message));
 	name = getName(msg->message);
+
+	for(i = 0; i < nContacts; i++)
+		printf("2 - online[i].ctt->name: %s\n", online[i].ctt->name);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
 	fprintf(conversationFile, "%s\n", message);
 	fclose(conversationFile);
+
+		for(i = 0; i < nContacts; i++)
+		printf("3 - online[i].ctt->name: %s\n", online[i].ctt->name);
+
 }
 
 int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
