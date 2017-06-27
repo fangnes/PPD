@@ -38,9 +38,9 @@ struct stConnectedContacts
 };
 
 // Variaveis globais
-struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
-struct stContact me;
-int nContacts = 0;									// Numero de contatos no array
+static struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
+static struct stContact me;
+static int nContacts = 0;									// Numero de contatos no array
 
 // Threads
 pthread_t cttThreads[MAXUSERS];						// Threads para atender requisicoes dos contatos
