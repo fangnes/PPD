@@ -523,17 +523,21 @@ void *send_message_1_svc(char *msg, struct svc_req *rqstp)
 int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
 	int *ret, i;
+	struct stContact *cttLocal;
+
+	cttLocal = (struct stContact*)malloc(sizeof(struct stContact));
+	memcpy(cttLocal, ctt, sizeof(struct stContact));
 
 	if(nContacts >= MAXUSERS){
 		printf("Numero maximo de contatos atingido\n");
 		*ret = -1;
 		return ret;
 	}else{
-		if(checkExistentContact(ctt) == 0){
+		if(checkExistentContact(cttLocal) == 0){
 			printf("\nContato no existe\n");
 			printf("ctt->name: %s\n", ctt->name);
-			connectToContact(ctt);
-			addContact(ctt);
+			connectToContact(cttLocal);
+			addContact(cttLocal);
 		}
 		*ret = 1;
 
