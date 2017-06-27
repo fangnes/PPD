@@ -510,7 +510,7 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 
 int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
-	int *ret;
+	int *ret, i;
 
 	if(nContacts >= MAXUSERS){
 		printf("Numero maximo de contatos atingido\n");
@@ -524,6 +524,10 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 			addContact(ctt);
 		}
 		*ret = 1;
+
+		for(i = 0; i < nContacts; i++)
+			printf("\n########online[i].ctt->name: %s\n\n", online[i].ctt->name);
+
 		return ret;
 	}
 }
