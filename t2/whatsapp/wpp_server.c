@@ -123,6 +123,8 @@ void parseCommand(char *cmd)
 				cttData = adjustPointer(cttData, 2);			// Retira o 'i ' do inicio do char array
 				ctt = contactData(cttData);						// Extrai nome e ip de 'cttData' e coloca dentro da estrutura 'ctt'
 
+				printf("1 strlen ctt->name: %zu\n", strlen(ctt->name));
+
 				if(checkExistentContact(ctt) == 0){				// Verifica se o contato ja foi adicionado
 					connectToContact(ctt);					// Conecta ao contato
 					//TODO: pegar dados do usuario corrente e colocar em 'cttMe'
@@ -162,6 +164,7 @@ void parseCommand(char *cmd)
 
 			message = adjustPointer(message, 2);						// retira o 's' da string
 			name = getName(message);									// extrai o nome do contato da string
+			printf("7 strlen name: %zu\n", name);
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			printf("name: %s\n", name);
@@ -246,7 +249,7 @@ void addContact(struct stContact *ctt)
 	FILE *contactsFile;
 
 	contactsFile = fopen(CONTACTSFILE, "a+");
-
+	printf("6 strlen ctt->name: %zu\n", strlen(ctt->name));
 	fprintf(contactsFile, "%s\t%s\n", ctt->name, ctt->ip);
 	fclose(contactsFile);
 }
@@ -263,6 +266,7 @@ void connectToContact(struct stContact *ctt)
 		//ack_server_1(pvoid, online[nContacts].cl);
 		online[nContacts].ctt = ctt;
 		printf("\n connecting to %s\n", online[nContacts].ctt->name);
+		printf("2 strlen online[nContacts].ctt->name: %zu\n", strlen(online[nContacts].ctt->name));
 		nContacts++;
 	}
 }
@@ -313,6 +317,8 @@ int searchForConnectedContacts(char *name)
 {
 	int i;
 
+	printf("4 strlen name: %zu\n", strlen(name));
+
 	for(i = 0; i < MAXUSERS; i++)
 	{
 		if(online[i].ctt != NULL)						// percorre array de contatos online
@@ -327,8 +333,10 @@ int sendAddRequest(struct stContact *me, struct stContact *ctt)
 {
 	int i, *r;
 
+	printf("3 strlen ctt->name: %zu\n", strlen(ctt->name));
 	i = searchForConnectedContacts(ctt->name);	// busca indice do contato "alvo"
 	printf("i: %d\n", i);
+
 	r = add_request_1(me, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
 
 	return 1;
@@ -506,6 +514,7 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 		return ret;
 	}else{
 		if(checkExistentContact(ctt) == 0){
+			printf("5 strlen ctt->name: %zu\n", strlen(ctt->name));
 			connectToContact(ctt);
 			addContact(ctt);
 		}
