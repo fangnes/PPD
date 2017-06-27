@@ -14,11 +14,6 @@
 #define NAMESIZE 8
 #define IPSIZE 15
 
-struct stMessage
-{
-	char message[MSGSIZE];
-};
-
 struct stContact
 {
 	char name[NAMESIZE];
@@ -29,7 +24,7 @@ program WPPPROG {
 	version WPPVERS {
 		void START_SERVER(void) 		= 1;
 		void ACK_SERVER(void)			= 2;
-		void SEND_MESSAGE(stMessage)	= 3;
+		void SEND_MESSAGE(char*)		= 3;
 		int ADD_REQUEST(stContact) 		= 4;
 		void READ_MESSAGE(void)			= 5;
 		void I_AM_ONLINE(stContact)		= 6;
