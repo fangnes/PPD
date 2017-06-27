@@ -434,6 +434,8 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	int family, s, n, result;
 	char host[NI_MAXHOST], name[NAMESIZE];
 
+	memset(&online, 0, sizeof(online));
+
 	if(getifaddrs(&ifaddr) == -1){
 		perror("getifaddrs");
 		exit(EXIT_FAILURE);
