@@ -493,6 +493,7 @@ void *send_message_1_svc(char *msg, struct svc_req *rqstp)
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
 	memcpy(message, msg, strlen(msg));
+	printf("Message: %s\n", message);
 	name = getName(msg);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
