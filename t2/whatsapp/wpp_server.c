@@ -98,6 +98,7 @@ void parseCommand(char *cmd)
 	// s variable
 	int i, *ret;
 	char *conversationFileName;
+	struct stMessage *stMsg;
 	char *msg;
 	void *pvoid;
 
@@ -155,6 +156,7 @@ void parseCommand(char *cmd)
 			name = (char*)malloc(NAMESIZE);
 			message = (char*)malloc(MSGSIZE);
 			msg = (char*)malloc(NAMESIZE + MSGSIZE + 6);
+			stMsg = (struct stMessage*)malloc(sizeof(struct stMessage));
 			memset(message, 0, MSGSIZE);
 			memset(msg, 0, NAMESIZE + MSGSIZE + 6);
 
@@ -172,7 +174,8 @@ void parseCommand(char *cmd)
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
 				//online[i].msg = msg;
-				send_message_1(msg, online[i].cl);			// envia mensagem chamando procedimento remoto
+				memcpy(stMsg->message, msg, strlen(msg));
+				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
 				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
 				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
 			}
@@ -479,7 +482,7 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	printf("CONNECTED OK\n");
 }
 
-void *send_message_1_svc(char *msg, struct svc_req *rqstp)
+void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 {
 	FILE *conversationFile;
 	char *conversationFileName, *name, *message;
@@ -492,9 +495,9 @@ void *send_message_1_svc(char *msg, struct svc_req *rqstp)
 	memset(message, 0, MSGSIZE);
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
-	memcpy(message, msg, strlen(msg));
+	memcpy(message, msg->message, strlen(msg->message));
 	printf("Message: %s\n", message);
-	name = getName(msg);
+	name = getName(msg->message);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
