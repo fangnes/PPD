@@ -163,6 +163,12 @@ void parseCommand(char *cmd)
 			message = adjustPointer(message, 2);						// retira o 's' da string
 			name = getName(message);									// extrai o nome do contato da string
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
+			
+			for(i = 0; i < nContacts; i++)
+			{
+				printf("online[i].ctt->name: %s\n", online[i].ctt->name);
+			}
+
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			if(i == -1){												// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
@@ -258,7 +264,9 @@ void connectToContact(struct stContact *ctt)
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
 		//ack_server_1(pvoid, online[nContacts].cl);
+		printf("INSIDE connectToContact() FUNCTION\n");
 		online[nContacts].ctt = ctt;
+		printf("online[nContacts].ctt->name: %s\n", online[nContacts].ctt->name);
 		nContacts++;
 	}
 }
@@ -435,6 +443,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	char host[NI_MAXHOST], name[NAMESIZE];
 
 	memset(&online, 0, sizeof(online));
+	printf("sizeof(online): %zu\n", sizeof(online));
 
 	if(getifaddrs(&ifaddr) == -1){
 		perror("getifaddrs");
@@ -486,6 +495,9 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	name = (char*)malloc(NAMESIZE);
 	message = (char*)malloc(MSGSIZE);
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
+	memset(name, 0, NAMESIZE);
+	memset(message, 0, MSGSIZE);
+	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
 	memcpy(message, msg->message, strlen(msg->message));
 	name = getName(msg->message);
@@ -506,6 +518,8 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 		return ret;
 	}else{
 		if(checkExistentContact(ctt) == 0){
+			printf("\nContato no existe\n");
+			printf("ctt->name: %s\n", ctt->name);
 			connectToContact(ctt);
 			addContact(ctt);
 		}
