@@ -164,7 +164,7 @@ void parseCommand(char *cmd)
 
 			message = adjustPointer(message, 2);						// retira o 's' da string
 			name = getName(message);									// extrai o nome do contato da string
-			printf("7 strlen name: %zu\n", name);
+			printf("7 strlen name: %zu\n", strlen(name));
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			printf("name: %s\n", name);
