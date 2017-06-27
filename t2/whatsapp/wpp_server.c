@@ -261,8 +261,8 @@ void connectToContact(struct stContact *ctt)
 		printf("ERROR do add %s to contacts\n", ctt->name);
 	}else{
 		//ack_server_1(pvoid, online[nContacts].cl);
-		printf("\n connecting to %s\n", ctt->name);
 		online[nContacts].ctt = ctt;
+		printf("\n connecting to %s\n", online[nContacts].ctt->name);
 		nContacts++;
 	}
 }
@@ -481,16 +481,18 @@ void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
 void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 {
 	FILE *conversationFile;
-	char *conversationFileName, *name;
+	char *conversationFileName, *name, *message;
 
 	name = (char*)malloc(NAMESIZE);
+	message = (char*)malloc(MSGSIZE);
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 
+	memcpy(message, msg->message, strlen(msg->message));
 	name = getName(msg->message);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "a+");		// abre arquivo de mensagens
-	fprintf(conversationFile, "%s\n", msg->message);
+	fprintf(conversationFile, "%s\n", message);
 	fclose(conversationFile);
 }
 
