@@ -75,7 +75,7 @@ void *waitForCommand()
 	char *cmd;
 
 	cmd = (char*)malloc(MAXSIZE);
-
+	memset(cmd, 0, MAXSIZE);
 	printf("#");
 	scanf("%[^\n]%*c", cmd);
 
@@ -153,6 +153,8 @@ void parseCommand(char *cmd)
 			break;
 		case 's':
 			
+			printf("cmd: %s\n", cmd);
+
 			name = (char*)malloc(NAMESIZE);
 			message = (char*)malloc(MSGSIZE);
 			msg = (char*)malloc(NAMESIZE + MSGSIZE + 6);
@@ -161,11 +163,13 @@ void parseCommand(char *cmd)
 			memset(msg, 0, NAMESIZE + MSGSIZE + 6);
 
 			memcpy(message, cmd, strlen(cmd));
+			printf("1 message: %s\n", message);
 
 			message = adjustPointer(message, 2);						// retira o 's' da string
+			printf("2 message: %s\n", message);
 			name = getName(message);									// extrai o nome do contato da string
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
-
+			printf("3 message: %s\n", message);
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			if(i == -1){												// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
