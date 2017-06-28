@@ -178,6 +178,7 @@ void parseCommand(char *cmd)
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
 				printf("4 msg: %s\n", msg);
+				printf("strlen(msg): %zu\n", strlen(msg));
 				memcpy(stMsg->message, msg, strlen(msg));
 				printf("5 stMsg->message: %s\n", stMsg->message);
 				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
