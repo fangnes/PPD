@@ -161,6 +161,8 @@ void parseCommand(char *cmd)
 			stMsg = (struct stMessage*)malloc(sizeof(struct stMessage));
 			memset(message, 0, MSGSIZE);
 			memset(msg, 0, NAMESIZE + MSGSIZE + 6);
+			memset(stMsg, 0, sizeof(struct stMessage));
+
 
 			memcpy(message, cmd, strlen(cmd));
 			printf("1 message: %s\n", message);
