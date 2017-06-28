@@ -16,7 +16,7 @@
 
 struct stMessage
 {
-	char message[MSGSIZE];
+	char message[NAMESIZE + MSGSIZE + 2];
 };
 
 struct stContact
