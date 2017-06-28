@@ -10,13 +10,13 @@
 
 /* Struct that will carry the app command */
 #define MAXSIZE 255
-#define MSGSIZE 42
+#define MSGSIZE 42	// 32 (msg) + 8 (name) + 2 (": ")
 #define NAMESIZE 8
 #define IPSIZE 15
 
 struct stMessage
 {
-	char message[NAMESIZE + MSGSIZE + 2];
+	char message[MSGSIZE];
 };
 
 struct stContact
