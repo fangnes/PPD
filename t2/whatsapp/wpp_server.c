@@ -159,19 +159,16 @@ void parseCommand(char *cmd)
 			message = (char*)malloc(MSGSIZE);
 			msg = (char*)malloc(NAMESIZE + MSGSIZE + 6);
 			stMsg = (struct stMessage*)malloc(sizeof(struct stMessage));
+			
 			memset(message, 0, MSGSIZE);
 			memset(msg, 0, NAMESIZE + MSGSIZE + 6);
 			memset(stMsg, 0, sizeof(struct stMessage));
 
-
 			memcpy(message, cmd, strlen(cmd));
-			printf("1 message: %s\n", message);
-
+			
 			message = adjustPointer(message, 2);						// retira o 's' da string
-			printf("2 message: %s\n", message);
 			name = getName(message);									// extrai o nome do contato da string
 			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
-			printf("3 message: %s\n", message);
 			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
 			if(i == -1){												// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
@@ -179,13 +176,14 @@ void parseCommand(char *cmd)
 				printf("ERROR: stContact doesn't exists\n");
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
-				printf("4 msg: %s\n", msg);
-				printf("strlen(msg): %zu\n", strlen(msg));
 				memcpy(stMsg->message, msg, strlen(msg));
-				printf("5 stMsg->message: %s\n", stMsg->message);
+				printf("preso aqui\n");
 				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
+				printf("n, aqui\n");
 				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+				printf("erou, aqui\n");
 				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
+				printf("ok\n");
 			}
 			break;
 		case 'c':
