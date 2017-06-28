@@ -177,9 +177,9 @@ void parseCommand(char *cmd)
 				printf("ERROR: stContact doesn't exists\n");
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
-				//online[i].msg = msg;
+				printf("4 msg: %s\n", msg);
 				memcpy(stMsg->message, msg, strlen(msg));
-				printf("stMsg->message: %s\n", stMsg->message);
+				printf("5 stMsg->message: %s\n", stMsg->message);
 				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
 				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
 				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
