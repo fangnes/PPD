@@ -190,9 +190,6 @@ void parseCommand(char *cmd)
 					}
 				}
 				fclose(contactsFile);
-				printf("\n\n");
-				for(i = 0; i < nContacts; i++)
-					printf("online[i].ctt->name: %s\n", online[i].ctt->name);
 			break;
 		default:
 			printf("Not valid command\n");
@@ -438,7 +435,6 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	char host[NI_MAXHOST], name[NAMESIZE];
 
 	memset(&online, 0, sizeof(online));
-	printf("sizeof(online): %zu\n", sizeof(online));
 
 	if(getifaddrs(&ifaddr) == -1){
 		perror("getifaddrs");
@@ -489,7 +485,7 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	int i;
 
 	name = (char*)malloc(NAMESIZE);
-	message = (char*)malloc(MSGSIZE);
+	message = (char*)malloc(MSGSIZE + NAMESIZE + 2);			// mensagem + nome + ": "
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
 	memset(name, 0, NAMESIZE);
 	memset(message, 0, MSGSIZE);
@@ -519,8 +515,6 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 		return ret;
 	}else{
 		if(checkExistentContact(cttLocal) == 0){
-			printf("\nContato no existe\n");
-			printf("ctt->name: %s\n", ctt->name);
 			connectToContact(cttLocal);
 			addContact(cttLocal);
 		}
