@@ -485,7 +485,10 @@ void groupMembers(char *names)
 		{
 			if(memberIndex <= MAXUSERS)
 			{
+				printf("name: %s\n", name);
 				contactIndex = searchForConnectedContacts(name);
+				printf("contactIndex: %d\n", contactIndex);
+				printf("online[contactIndex].ctt->name: %s\n", online[contactIndex].ctt->name);
 				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
 				printf("groups[nGroups].gpCtts[memberIndex].ctt->name: %s\n", groups[nGroups].gpCtts[memberIndex].ctt->name);
 				memberIndex++;
