@@ -27,6 +27,7 @@
 #define MAXSIZE 		255
 #define NAMESIZE		8
 #define MAXUSERS		8
+#define MAXGROUPS		4
 #define CONTACTSFILE 	"contacts.txt"
 
 //Declaracao de estruturas
@@ -36,28 +37,28 @@ struct stConnectedContacts
 	CLIENT *cl;
 };
 
+struct stGroup
+{
+	struct stConnectedContacts ctts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
+};
+
 // Variaveis globais
 static struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
+static struct stGroup groups[MAXGROUPS];					// Array que contem dados dos grupos
 static struct stContact me;
 static int nContacts = 0;									// Numero de contatos no array
+static int nGroups = 0;										// Numero de grupos do usuario
 
 // Threads
-pthread_t cttThreads[MAXUSERS];						// Threads para atender requisicoes dos contatos
 pthread_t mainThread;								// Thread que atendera novas requisicoes
-/*pthread_t tStartServer;							// Thread para a funcao START_SERVER
-pthread_t tAckServer;								// Thread para a funcao ACK_SERVER
-pthread_t tSendMessage;								// Thread para a funcao SEND_MESSAGE
-pthread_t tAddRequest;								// Thread para a funcao ADD_REQUEST
-pthread_t tReadMessage;								// Thread para a funcao READ_MESSAGE
-pthread_t tIAmOnline;								// Thread para a funcao I_AM_ONLINE
-*/
+
 // Declaracoes de rotinas
 void *waitForCommand();												// Aguarda comando
 void parseCommand(char *cmd);										// Faz a depuracao do comando e executa ele
 char *adjustPointer(char *array, int pos);							// Ajusta o ponteiro de inicio do array
 struct stContact *contactData(char *contactData);					// Coloca dados do array em uma struct stContact
 void addContact(struct stContact *ctt);								// Adiciona contato no arquivo local
-void connectToContact(struct stContact *ctt);				// Tenta conectar (virar cliente) do contato
+void connectToContact(struct stContact *ctt);						// Tenta conectar (virar cliente) do contato
 int checkExistentContact(struct stContact *ctt);					// Verifica se contato ja existe na lista de contatos
 char *getName(char *array);											// Extrai nome do array
 int searchForConnectedContacts(char *name);							// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
@@ -67,7 +68,7 @@ void writeSentMessage(char *name, char *msg);						// Escreve mensagem enviada n
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
 void writeReceivedMessage(char *message);							// Escreve mensagem recebida
-//void startThreads();												// Inicia todas as threads
+void groupMembers(char *names);										// Identifica membros do grupo e os adiciona no array de dados dos grupos
 
 // Rotina que le o comando
 void *waitForCommand()
@@ -94,6 +95,10 @@ void parseCommand(char *cmd)
 
 	// i variables
 	struct stContact *ctt;
+
+	// g variables
+	char *groupData;
+	char *groupName;
 
 	// s variable
 	int i, *ret;
@@ -135,7 +140,21 @@ void parseCommand(char *cmd)
 			}
 			break;
 		case 'g':
-			printf("received 'group' command: %s\n", cmd);
+			
+			groupData = (char*)malloc(MAXSIZE);
+			groupName = (char*)malloc(NAMESIZE);
+			memset(groupData, 0, MAXSIZE);
+			memset(groupName, 0, NAMESIZE);
+
+			groupData = adjustPointer(cmd, 2);										// Retira o 'g' do inicio do char array
+			groupName = getName(groupData);
+
+			printf("groupName: %s\n", groupName);
+			printf("groupData: %s\n", groupData);
+
+			//groupMembers(groupData);
+
+
 			break;
 		case 'l':
 			name = (char*)malloc(NAMESIZE);
@@ -177,13 +196,9 @@ void parseCommand(char *cmd)
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
 				memcpy(stMsg->message, msg, strlen(msg));
-				printf("preso aqui\n");
 				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
-				printf("n, aqui\n");
 				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
-				printf("erou, aqui\n");
 				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
-				printf("ok\n");
 			}
 			break;
 		case 'c':
@@ -424,6 +439,21 @@ void sendNoSentMessage(struct stContact *ctt)
 	fprintf(conversationFile, "%s\n", msg);					// adiciona campo no final da mensagem para status de não recebido, recebido e vizualizado
 	fclose(conversationFile);
 }*/
+
+void createGroupFile(char *groupName)
+{
+
+}
+
+void groupMembers(char *names)
+{
+	int i;
+
+	for(i = 0; i < strlen(names); i++)
+	{
+
+	}
+}
 /*****************************************************************************************/
 /*****************************************************************************************/
 /*****************************************************************************************/
@@ -531,10 +561,10 @@ int *add_request_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 
 void *read_message_1_svc(void *pvoid, struct svc_req *rqstp)
 {
-	//TODO: implementar rotina que marca mensagem como lida
+	// TODO: enviar notificação de mensagem lida
 }
 
 void *i_am_online_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
-
+	// TODO: enviar notificação de que estou online
 }
