@@ -69,7 +69,7 @@ void writeSentMessage(char *name, char *msg);						// Escreve mensagem enviada n
 void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
 void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
 void writeReceivedMessage(char *message);							// Escreve mensagem recebida
-void groupMembers(char *names);										// Identifica membros do grupo e os adiciona no array de dados dos grupos
+void groupMembers(char *groupData);										// Identifica membros do grupo e os adiciona no array de dados dos grupos
 
 // Rotina que le o comando
 void *waitForCommand()
@@ -154,10 +154,11 @@ void parseCommand(char *cmd)
 
 			groupData = adjustPointer(groupData, strlen(groupName) + 1);
 
+			printf("groupData: %s\n", groupData);
+
 			groupMembers(groupData);
 			memcpy(groups[nGroups].name, groupName, strlen(groupName));
 
-			printf("groupData: %s\n", groupData);
 
 			printf("Group name: %s\n", groups[nGroups].name);
 			for(i = 0; i < MAXUSERS; i++)
@@ -467,24 +468,25 @@ struct stGroup
 	struct stConnectedContacts gpCtts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
 };
 */
-void groupMembers(char *names)
+void groupMembers(char *groupData)
 {
 	int i, contactIndex, memberIndex = 0;
 	//struct stConnectedContacts *ctt;
 	char *name;
 
-	printf("names: %s\n", names);
+	printf("groupData: %s\n", groupData);
+	printf("strlen(groupData): %zu\n", strlen(groupData));
 
-	for(i = 0; i < strlen(names); i++)
+	for(i = 0; i < strlen(groupData); i++)
 	{
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
 		name = (char*)malloc(NAMESIZE);
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
 		memset(name, 0, NAMESIZE);
 
-		if(names[i] != ' ')
+		if(groupData[i] != ' ')
 		{
-			name[i] = names[i];
+			name[i] = groupData[i];
 		}
 		else
 		{
