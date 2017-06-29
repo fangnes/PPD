@@ -158,6 +158,7 @@ void parseCommand(char *cmd)
 			printf("Group name: %s\n", groups[nGroups].name);
 			for(i = 0; i < MAXUSERS; i++)
 			{
+				printf("try\n");
 				if(groups[nGroups].gpCtts[i].ctt->name != NULL)
 					printf("Member: %s\n", groups[nGroups].gpCtts[i].ctt->name);
 			}
@@ -486,6 +487,7 @@ void groupMembers(char *names)
 			{
 				contactIndex = searchForConnectedContacts(name);
 				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
+				printf("groups[nGroups].gpCtts[memberIndex].ctt->name: %s\n", groups[nGroups].gpCtts[memberIndex].ctt->name);
 				memberIndex++;
 			}
 			else
