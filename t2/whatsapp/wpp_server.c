@@ -39,7 +39,8 @@ struct stConnectedContacts
 
 struct stGroup
 {
-	struct stConnectedContacts ctts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
+	char name[NAMESIZE + 1];
+	struct stConnectedContacts gpCtts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
 };
 
 // Variaveis globais
@@ -149,12 +150,17 @@ void parseCommand(char *cmd)
 			groupData = adjustPointer(cmd, 2);										// Retira o 'g' do inicio do char array
 			groupName = getName(groupData);
 
-			groupData = adjustPointer(groupData, strlen(groupName));
+			groupData = adjustPointer(groupData, strlen(groupName) + 1);
 
-			printf("groupName: %s\n", groupName);
-			printf("groupData: %s\n", groupData);
+			groupMembers(groupData);
+			memcpy(groups[nGroups].name, groupName, strlen(groupName));
 
-			//groupMembers(groupData);
+			printf("Group name: %s\n", groups[nGroups].name);
+			for(i = 0; i < MAXUSERS; i++)
+			{
+				if(groups[nGroups].gpCtts[i].ctt->name != NULL)
+					printf("Member: %s\n", groups[nGroups].gpCtts[i].ctt->name);
+			}
 
 
 			break;
@@ -403,9 +409,6 @@ void writeNoSentMessage(char *name, char *msg)
 	fclose(conversationFile);
 }
 
-
-
-
 // Envia mensagens pendentes para 'ctt' ** NOT READY **
 void sendNoSentMessage(struct stContact *ctt)
 {
@@ -446,13 +449,51 @@ void createGroupFile(char *groupName)
 
 }
 
+// static struct stGroup groups[MAXGROUPS];
+// static int nGroups = 0;
+/*
+struct stConnectedContacts
+{
+	struct stContact *ctt;							// Estrutura contém nome e ip
+	CLIENT *cl;
+};
+struct stGroup
+{
+	struct stConnectedContacts gpCtts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
+};
+*/
 void groupMembers(char *names)
 {
-	int i;
+	int i, contactIndex, memberIndex = 0;
+	//struct stConnectedContacts *ctt;
+	char *name;
 
 	for(i = 0; i < strlen(names); i++)
 	{
+		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
+		name = (char*)malloc(NAMESIZE);
 
+		//memset(ctt, 0, sizeof(struct stConnectedContacts));
+		memset(name, 0, NAMESIZE);
+
+		if(names[i] != ' ')
+		{
+			name[i] = names[i];
+		}
+		else
+		{
+			if(memberIndex <= MAXUSERS)
+			{
+				contactIndex = searchForConnectedContacts(name);
+				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
+				memberIndex++;
+			}
+			else
+			{
+				printf("Numero maximo de participantes atingido\n");
+			}
+			free(name);
+		}
 	}
 }
 /*****************************************************************************************/
