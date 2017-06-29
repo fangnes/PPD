@@ -147,6 +147,8 @@ void parseCommand(char *cmd)
 			memset(groupData, 0, MAXSIZE);
 			memset(groupName, 0, NAMESIZE);
 
+			printf("cmd: %s\n", cmd);
+
 			groupData = adjustPointer(cmd, 2);										// Retira o 'g' do inicio do char array
 			groupName = getName(groupData);
 
@@ -154,6 +156,8 @@ void parseCommand(char *cmd)
 
 			groupMembers(groupData);
 			memcpy(groups[nGroups].name, groupName, strlen(groupName));
+
+			printf("groupData: %s\n", groupData);
 
 			printf("Group name: %s\n", groups[nGroups].name);
 			for(i = 0; i < MAXUSERS; i++)
@@ -469,11 +473,12 @@ void groupMembers(char *names)
 	//struct stConnectedContacts *ctt;
 	char *name;
 
+	printf("names: %s\n", names);
+
 	for(i = 0; i < strlen(names); i++)
 	{
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
 		name = (char*)malloc(NAMESIZE);
-
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
 		memset(name, 0, NAMESIZE);
 
