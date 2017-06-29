@@ -149,6 +149,8 @@ void parseCommand(char *cmd)
 			groupData = adjustPointer(cmd, 2);										// Retira o 'g' do inicio do char array
 			groupName = getName(groupData);
 
+			groupData = adjustPointer(groupData, strlen(groupName));
+
 			printf("groupName: %s\n", groupName);
 			printf("groupData: %s\n", groupData);
 
@@ -252,14 +254,13 @@ struct stContact *contactData(char *contactData)
 			ctt->name[nameIndex] = contactData[i];
 			nameIndex++;
 		}else{
-			if((contactData[i] > 0x2F && contactData[i] < 0x3A) || // se for um numero, comeca a preencher o char array ctt->ip
+			if((contactData[i] > 0x2F && contactData[i] < 0x3A) || 	// se for um numero, comeca a preencher o char array ctt->ip
 				contactData[i] == 0x2E) {
 				ctt->ip[ipIndex] = contactData[i];
 				ipIndex++;
 			}
 		}
 	}
-
 	return ctt;														// retorna estrutura com nome e ip do contato
 }
 
