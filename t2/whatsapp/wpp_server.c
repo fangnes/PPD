@@ -487,6 +487,7 @@ void groupMembers(char *groupData)
 		if(groupData[i] != ' ')
 		{
 			name[i] = groupData[i];
+			printf("name[i]: %c\n", name[i]);
 		}
 		else
 		{
