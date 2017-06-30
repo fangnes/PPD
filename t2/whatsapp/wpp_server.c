@@ -485,7 +485,7 @@ void groupMembers(char *groupData)
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
 		printf("groupData[i]: %c\n", groupData[i]);
-		if(groupData[i] != ' ')
+		if(groupData[i] != ' ' && groupData[i] != NULL)
 		{
 			name[i] = groupData[i];
 			printf("name[i]: %c\n", name[i]);
@@ -494,6 +494,7 @@ void groupMembers(char *groupData)
 		{
 			if(memberIndex <= MAXUSERS)
 			{
+				// TODO: implementar quantidade de membros dentro de 'groups'
 				printf("name: %s\n", name);
 				contactIndex = searchForConnectedContacts(name);
 				printf("contactIndex: %d\n", contactIndex);
