@@ -477,12 +477,13 @@ void groupMembers(char *groupData)
 	printf("groupData: %s\n", groupData);
 	printf("strlen(groupData): %zu\n", strlen(groupData));
 
+	name = (char*)malloc(NAMESIZE);
+	memset(name, 0, NAMESIZE);
+
 	for(i = 0; i < strlen(groupData); i++)
 	{
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
-		name = (char*)malloc(NAMESIZE);
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
-		memset(name, 0, NAMESIZE);
 		printf("groupData[i]: %c\n", groupData[i]);
 		if(groupData[i] != ' ')
 		{
@@ -506,6 +507,8 @@ void groupMembers(char *groupData)
 				printf("Numero maximo de participantes atingido\n");
 			}
 			free(name);
+			name = (char*)malloc(NAMESIZE);
+			memset(name, 0, NAMESIZE);
 		}
 	}
 }
