@@ -480,6 +480,12 @@ void groupMembers(char *groupData)
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
 
+	printf("\n================ TESTING ================\n");
+	printf("nContacts: %d\n", nContacts);
+	for(i = 0; i < nContacts; i++)
+		printf("online[i].ctt->name: %s\n", online[i].ctt->name);
+
+
 	for(i = 0; i < strlen(groupData) + 1; i++)
 	{
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
