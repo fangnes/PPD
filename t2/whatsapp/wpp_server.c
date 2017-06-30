@@ -470,9 +470,12 @@ struct stGroup
 */
 void groupMembers(char *groupData)
 {
-	int i, contactIndex, memberIndex = 0;
+	int i, nameIndex, contactIndex, memberIndex;
 	//struct stConnectedContacts *ctt;
 	char *name;
+
+	memberIndex = 0;
+	nameIndex = 0;
 
 	printf("groupData: %s\n", groupData);
 	printf("strlen(groupData): %zu\n", strlen(groupData));
@@ -484,30 +487,29 @@ void groupMembers(char *groupData)
 	{
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
-		printf("groupData[i]: %c\n", groupData[i]);
-		printf("memberIndex: %d\n", memberIndex);
 		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
-			name[i] = groupData[i];
-			printf("name[i]: %c\n", name[i]);
+			name[nameIndex] = groupData[i];
+			nameIndex++;
 		}
 		else
 		{
 			if(memberIndex <= MAXUSERS)
 			{
 				// TODO: implementar quantidade de membros dentro de 'groups'
-				printf("name: %s\n", name);
+				//printf("name: %s\n", name);
 				contactIndex = searchForConnectedContacts(name);
-				printf("contactIndex: %d\n", contactIndex);
-				printf("online[contactIndex].ctt->name: %s\n", online[contactIndex].ctt->name);
+				//printf("contactIndex: %d\n", contactIndex);
+				//printf("online[contactIndex].ctt->name: %s\n", online[contactIndex].ctt->name);
 				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
-				printf("groups[nGroups].gpCtts[memberIndex].ctt->name: %s\n", groups[nGroups].gpCtts[memberIndex].ctt->name);
+				//printf("groups[nGroups].gpCtts[memberIndex].ctt->name: %s\n", groups[nGroups].gpCtts[memberIndex].ctt->name);
 				memberIndex++;
 			}
 			else
 			{
 				printf("Numero maximo de participantes atingido\n");
 			}
+			nameIndex = 0;
 			memset(name, 0, NAMESIZE);
 		}
 	}
