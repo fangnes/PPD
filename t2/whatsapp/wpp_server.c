@@ -485,7 +485,7 @@ void groupMembers(char *groupData)
 		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
 		//memset(ctt, 0, sizeof(struct stConnectedContacts));
 		printf("groupData[i]: %c\n", groupData[i]);
-		if(groupData[i] != ' ' && groupData[i] != NULL)
+		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
 			name[i] = groupData[i];
 			printf("name[i]: %c\n", name[i]);
