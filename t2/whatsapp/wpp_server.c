@@ -158,7 +158,6 @@ void parseCommand(char *cmd)
 			if(checkExistentGroup(groupName) == 1)
 			{
 				memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
-
 				groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
 				groupMembers(groupData);												// Monta estrutura do grupo
 				sendGroupRequest(groupName);											// Envia requisições para integrantes do grupo também criarem o grupo localmente
@@ -695,10 +694,15 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	memset(groupData, 0, MAXSIZE);
 	memset(groupName, 0, NAMESIZE);
 
+	printf("Print 1\n");
 	groupName = getName(groupData);											// 'groupName' contém o nome do grupo
+	printf("Print 2\n");
 	memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
+	printf("Print 3\n");
 	groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
+	printf("Print 4\n");
 	groupMembers(groupData);												// Monta estrutura do grupo
+	printf("Print 5\n");
 }
 
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
