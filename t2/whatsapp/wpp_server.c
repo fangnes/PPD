@@ -11,7 +11,6 @@
 // Para pegar o ip local
 #include <ifaddrs.h>		// getifaddrs()
 #include <netdb.h>			// NI_MAXHOST
-//#include <sys/socket.h>		// getnameinfo()
 
 // Threads
 #include <pthread.h>
@@ -40,36 +39,41 @@ struct stConnectedContacts
 struct stGroup
 {
 	char name[NAMESIZE + 1];
-	struct stConnectedContacts gpCtts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
+	int countMembers;
+	struct stConnectedContacts gpCtts[MAXUSERS];	// Estrutura utilizada para gerenciar grupos
 };
 
 // Variaveis globais
-static struct stConnectedContacts online[MAXUSERS]; 		// Array que contem dados dos contatos
-static struct stGroup groups[MAXGROUPS];					// Array que contem dados dos grupos
-static struct stContact me;
-static int nContacts = 0;									// Numero de contatos no array
-static int nGroups = 0;										// Numero de grupos do usuario
+static struct stConnectedContacts online[MAXUSERS]; // Array que contem dados dos contatos
+static struct stGroup groups[MAXGROUPS];			// Array que contem dados dos grupos
+static struct stContact me;							// Struct com dados do usuario
+static int nContacts = 0;							// Numero de contatos no array
+static int nGroups = 0;								// Numero de grupos do usuario
 
 // Threads
-pthread_t mainThread;								// Thread que atendera novas requisicoes
+pthread_t mainThread;								// Thread que processara comandos
 
 // Declaracoes de rotinas
-void *waitForCommand();												// Aguarda comando
-void parseCommand(char *cmd);										// Faz a depuracao do comando e executa ele
-char *adjustPointer(char *array, int pos);							// Ajusta o ponteiro de inicio do array
-struct stContact *contactData(char *contactData);					// Coloca dados do array em uma struct stContact
-void addContact(struct stContact *ctt);								// Adiciona contato no arquivo local
-void connectToContact(struct stContact *ctt);						// Tenta conectar (virar cliente) do contato
-int checkExistentContact(struct stContact *ctt);					// Verifica se contato ja existe na lista de contatos
-char *getName(char *array);											// Extrai nome do array
-int searchForConnectedContacts(char *name);							// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
-int sendAddRequest(struct stContact *me, struct stContact *ctt);	// Solicita ao 'ctt' para ser adicionado na lista de contatos "alvo"
-void loadOnlineContacts();											// Carrega lista de contatos para o array de contatos online
-void writeSentMessage(char *name, char *msg);						// Escreve mensagem enviada no arquivo
-void writeNoSentMessage(char *name, char *msg);						// Escreve mensagem não enviada no arquivo
-void sendNoSentMessage(struct stContact *ctt);						// Envia mensagens pendentes para 'ctt'
-void writeReceivedMessage(char *message);							// Escreve mensagem recebida
-void groupMembers(char *groupData);										// Identifica membros do grupo e os adiciona no array de dados dos grupos
+void *waitForCommand();									// Aguarda comando
+void parseCommand(char *cmd);							// Faz a depuracao do comando e executa ele
+char *adjustPointer(char *array, int pos);				// Ajusta o ponteiro de inicio do array
+struct stContact *contactData(char *contactData);		// Coloca dados do array em uma struct stContact
+void addContact(struct stContact *ctt);					// Adiciona contato no arquivo local
+void connectToContact(struct stContact *ctt);			// Tenta conectar (virar cliente) do contato
+int checkExistentContact(struct stContact *ctt);		// Verifica se contato ja existe na lista de contatos
+char *getName(char *array);								// Extrai nome do array
+int searchForConnectedContacts(char *name);				// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
+int sendAddRequest(struct stContact *ctt);				// Solicita ao 'ctt' para ser adicionado na lista de contatos "alvo"
+void loadOnlineContacts();								// Carrega lista de contatos para o array de contatos online
+void writeSentMessage(char *name, char *msg);			// Escreve mensagem enviada no arquivo
+void writeNoSentMessage(char *name, char *msg);			// Escreve mensagem não enviada no arquivo
+void sendNoSentMessage(struct stContact *ctt);			// Envia mensagens pendentes para 'ctt'
+void writeReceivedMessage(char *message);				// Escreve mensagem recebida
+void groupMembers(char *groupName);						// Identifica membros do grupo e os adiciona no array de dados dos grupos
+void sendGroupRequest(char *groupName);					// Solicita ao 'ctt' para criar o grupo localmente	
+int checkExistentGroup(char *groupName);				// Verifica se o grupo ja existe
+int searchForGroups(char *groupName);					// Procura grupo pelo nome, retorna o indice desse contato em groups[MAXGROUPS]
+void sendGroupMessage(char *groupName, char *message);	// Envia mensagem para o grupo
 
 // Rotina que le o comando
 void *waitForCommand()
@@ -129,13 +133,15 @@ void parseCommand(char *cmd)
 				cttData = adjustPointer(cttData, 2);			// Retira o 'i ' do inicio do char array
 				ctt = contactData(cttData);						// Extrai nome e ip de 'cttData' e coloca dentro da estrutura 'ctt'
 
-				if(checkExistentContact(ctt) == 0){				// Verifica se o contato ja foi adicionado
-					connectToContact(ctt);					// Conecta ao contato
-					//TODO: pegar dados do usuario corrente e colocar em 'cttMe'
-					if(sendAddRequest(&me, ctt) == 1)
-						addContact(ctt);							// Adiciona contato no arquivto 'contacts.txt'
+				if(checkExistentContact(ctt) == 0)				// Verifica se o contato ja foi adicionado
+				{
+					connectToContact(ctt);						// Conecta ao contato
+					if(sendAddRequest(ctt) == 1)				// Envia requisicao para contato add usuario localmente
+						addContact(ctt);						// Adiciona contato no arquivto 'contacts.txt'
 					//TODO: else destruindo conexão previamente estabelecida
-				}else{
+				}
+				else
+				{
 					printf("Contact already added\n");			// Alerta de contato ja adicionado
 				}
 			}
@@ -147,28 +153,18 @@ void parseCommand(char *cmd)
 			memset(groupData, 0, MAXSIZE);
 			memset(groupName, 0, NAMESIZE);
 
-			printf("cmd: %s\n", cmd);
-
 			groupData = adjustPointer(cmd, 2);										// Retira o 'g' do inicio do char array
-			groupName = getName(groupData);
-
-			groupData = adjustPointer(groupData, strlen(groupName) + 1);
-
-			printf("groupData: %s\n", groupData);
-
-			groupMembers(groupData);
-			memcpy(groups[nGroups].name, groupName, strlen(groupName));
-
-
-			printf("Group name: %s\n", groups[nGroups].name);
-			for(i = 0; i < MAXUSERS; i++)
+			groupName = getName(groupData);											// 'groupName' contém o nome do grupo
+			if(checkExistentGroup(groupName) == 1)
 			{
-				printf("try\n");
-				if(groups[nGroups].gpCtts[i].ctt->name != NULL)
-					printf("Member: %s\n", groups[nGroups].gpCtts[i].ctt->name);
+				memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
+
+				groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
+				groupMembers(groupData);												// Monta estrutura do grupo
+				sendGroupRequest(groupName);											// Envia requisições para integrantes do grupo também criarem o grupo localmente
 			}
-
-
+			else
+				printf("Grupo ja existente.\n");
 			break;
 		case 'l':
 			name = (char*)malloc(NAMESIZE);
@@ -199,19 +195,25 @@ void parseCommand(char *cmd)
 
 			memcpy(message, cmd, strlen(cmd));
 			
-			message = adjustPointer(message, 2);						// retira o 's' da string
-			name = getName(message);									// extrai o nome do contato da string
-			message = adjustPointer(message, strlen(name) + 1);			// ajusta ponteiro para pular o nome
-			i = searchForConnectedContacts(name);						// Procura pelo index do contato no array de contatos 'online'
-			if(i == -1){												// verifica se o contato está na lista de conectados
+			message = adjustPointer(message, 2);					// retira o 's' da string
+			name = getName(message);								// extrai o nome do contato da string
+			message = adjustPointer(message, strlen(name) + 1);		// ajusta ponteiro para pular o nome
+			i = searchForConnectedContacts(name);					// Procura pelo index do contato no array de contatos 'online'
+			if(i == -1){											// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
-				writeNoSentMessage(name, message);
-				printf("ERROR: stContact doesn't exists\n");
+				// TODO: verificar se a mensagem não é para um grupo
+				i = searchForGroups(name);
+				if(i == -1)
+					writeNoSentMessage(name, message);
+				else
+				{
+					//TODO: chamar funcao que envia mensagem para membros do grupo
+				}
 			}else{
-				sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
+				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
 				memcpy(stMsg->message, msg, strlen(msg));
-				send_message_1(stMsg, online[i].cl);			// envia mensagem chamando procedimento remoto
-				sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+				send_message_1(stMsg, online[i].cl);				// envia mensagem chamando procedimento remoto
+				sprintf(msg, "(S) %s: %s", me.name, message);		// monta mensagem que sera colocada no arquivo com historicos de mensagens
 				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
 			}
 			break;
@@ -356,12 +358,12 @@ int searchForConnectedContacts(char *name)
 }
 
 // Solicita ao 'ctt' para ser adicionado na lista de contatos "alvo"
-int sendAddRequest(struct stContact *me, struct stContact *ctt)
+int sendAddRequest(struct stContact *ctt)
 {
 	int i, *r;
 
 	i = searchForConnectedContacts(ctt->name);	// busca indice do contato "alvo"
-	r = add_request_1(me, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
+	r = add_request_1(&me, online[i].cl);		// envia requisicao para ser adicionado na lista de contatos do contato "alvo"
 
 	return 1;
 }
@@ -450,43 +452,19 @@ void sendNoSentMessage(struct stContact *ctt)
 	fclose(conversationFile);
 }*/
 
-void createGroupFile(char *groupName)
-{
-
-}
-
-// static struct stGroup groups[MAXGROUPS];
-// static int nGroups = 0;
-/*
-struct stConnectedContacts
-{
-	struct stContact *ctt;							// Estrutura contém nome e ip
-	CLIENT *cl;
-};
-struct stGroup
-{
-	struct stConnectedContacts gpCtts[MAXUSERS];		// Estrutura utilizada para gerenciar grupos
-};
-*/
 void groupMembers(char *groupData)
 {
 	int i, nameIndex, contactIndex, memberIndex;
-	//struct stConnectedContacts *ctt;
 	char *name;
 
 	memberIndex = 0;
 	nameIndex = 0;
-
-	printf("groupData: %s\n", groupData);
-	printf("strlen(groupData): %zu\n", strlen(groupData));
 
 	name = (char*)malloc(NAMESIZE);
 	memset(name, 0, NAMESIZE);
 
 	for(i = 0; i < strlen(groupData) + 1; i++)
 	{
-		//ctt = (struct stConnectedContacts*)malloc(sizeof(struct stConnectedContacts));
-		//memset(ctt, 0, sizeof(struct stConnectedContacts));
 		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
 			name[nameIndex] = groupData[i];
@@ -496,13 +474,9 @@ void groupMembers(char *groupData)
 		{
 			if(memberIndex <= MAXUSERS)
 			{
-				// TODO: implementar quantidade de membros dentro de 'groups'
-				//printf("name: %s\n", name);
 				contactIndex = searchForConnectedContacts(name);
-				//printf("contactIndex: %d\n", contactIndex);
-				//printf("online[contactIndex].ctt->name: %s\n", online[contactIndex].ctt->name);
 				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
-				//printf("groups[nGroups].gpCtts[memberIndex].ctt->name: %s\n", groups[nGroups].gpCtts[memberIndex].ctt->name);
+				groups[nGroups].countMembers++;
 				memberIndex++;
 			}
 			else
@@ -512,6 +486,88 @@ void groupMembers(char *groupData)
 			nameIndex = 0;
 			memset(name, 0, NAMESIZE);
 		}
+	}
+}
+
+void sendGroupRequest(char *groupName)
+{
+	int i, j, groupIndex;
+	char *groupData;
+	struct stMessage *groupPackage;
+
+	groupData = (char*)malloc(MAXSIZE);
+	groupPackage = (struct stMessage*)malloc(sizeof(struct stMessage));
+
+	memset(groupData, 0, MAXSIZE);
+	memset(groupPackage, 0, sizeof(struct stMessage));
+
+	sprintf(groupData, "%s ", groupName);
+
+	for(i = 0; i < MAXGROUPS; i++)
+	{
+		if(strcmp(groupName, groups[i].name) == 0)
+		{	
+			groupIndex = i;
+			break;
+		}
+	}
+
+	for(i = 0; i < groups[groupIndex].countMembers; i++)
+	{
+		for(j = 0; j < groups[groupIndex].countMembers; j++)
+		{
+			if(strcmp(groups[groupIndex].gpCtts[i].ctt->name, 
+					  groups[groupIndex].gpCtts[j].ctt->name) != 0)
+			{
+				sprintf(groupData, "%s ", groups[groupIndex].gpCtts[j].ctt->name);
+			}
+		}
+		memcpy(groupPackage->message, groupData, strlen(groupData));
+		group_request_1(groupPackage, groups[groupIndex].gpCtts[i].cl);
+	}
+}
+
+int checkExistentGroup(char *groupName)
+{
+	int i = 0;
+
+	for(i = 0; i < nGroups; i++)
+	{
+		if(groups[i].name != NULL)
+			if(strcmp(groupName, groups[i].name) == 0)
+				return -1;
+	}
+	return 1;
+}
+
+int searchForGroups(char *groupName)
+{
+	int i;
+
+	for(i = 0; i < nGroups; i++)
+	{
+		if(strcmp(groupName, groups[i].name) == 0)
+			return i;
+	}
+	return -1;
+}
+
+void sendGroupMessage(char *groupName, char *message)
+{
+	int i, groupIndex;
+	struct stGroupMessage *gpMessage;
+
+	gpMessage = (struct stGroupMessage*)malloc(sizeof(struct stGroupMessage));
+	memset(gpMessage, 0, sizeof(struct stGroupMessage));
+	memcpy(gpMessage->name, groupName, strlen(groupName));
+	memcpy(gpMessage->message, message, strlen(message));
+
+	groupIndex = searchForGroups(groupName);
+
+	for(i = 0; i < groups[groupIndex].countMembers; i++)
+	{
+		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
+		// TODO: implementar send_group_message_1
 	}
 }
 /*****************************************************************************************/
@@ -531,6 +587,7 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	char host[NI_MAXHOST], name[NAMESIZE];
 
 	memset(&online, 0, sizeof(online));
+	memset(&groups, 0, sizeof(groups));
 
 	if(getifaddrs(&ifaddr) == -1){
 		perror("getifaddrs");
@@ -627,4 +684,24 @@ void *read_message_1_svc(void *pvoid, struct svc_req *rqstp)
 void *i_am_online_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
 	// TODO: enviar notificação de que estou online
+}
+
+void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
+{
+	char *groupData, *groupName;
+
+	groupData = (char*)malloc(MAXSIZE);
+	groupName = (char*)malloc(NAMESIZE);
+	memset(groupData, 0, MAXSIZE);
+	memset(groupName, 0, NAMESIZE);
+
+	groupName = getName(groupData);											// 'groupName' contém o nome do grupo
+	memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
+	groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
+	groupMembers(groupData);												// Monta estrutura do grupo
+}
+
+void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
+{
+	// TODO: implementar gravacao da mensagem recebida no arquivo do grupo
 }
