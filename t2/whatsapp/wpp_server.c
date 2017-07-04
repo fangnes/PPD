@@ -500,7 +500,6 @@ void sendGroupRequest(char *groupName)
 	memset(groupData, 0, MAXSIZE);
 	memset(groupPackage, 0, sizeof(struct stMessage));
 
-	sprintf(groupData, "%s ", groupName);
 
 	for(i = 0; i < MAXGROUPS; i++)
 	{
@@ -513,16 +512,19 @@ void sendGroupRequest(char *groupName)
 
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
+		sprintf(groupData, "%s %s ", groupName, me.name);
 		for(j = 0; j < groups[groupIndex].countMembers; j++)
 		{
 			if(strcmp(groups[groupIndex].gpCtts[i].ctt->name, 
 					  groups[groupIndex].gpCtts[j].ctt->name) != 0)
 			{
-				sprintf(groupData, "%s ", groups[groupIndex].gpCtts[j].ctt->name);
+				strcat(groupData, groups[groupIndex].gpCtts[j].ctt->name);
+				strcat(groupData, " ");
 			}
 		}
 		memcpy(groupPackage->message, groupData, strlen(groupData));
 		group_request_1(groupPackage, groups[groupIndex].gpCtts[i].cl);
+		memset(groupData, 0, MAXSIZE);
 	}
 }
 
@@ -694,15 +696,12 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	memset(groupData, 0, MAXSIZE);
 	memset(groupName, 0, NAMESIZE);
 
-	printf("Print 1\n");
+	memcpy(groupData, msg->message, strlen(msg->message));
+
 	groupName = getName(groupData);											// 'groupName' contém o nome do grupo
-	printf("Print 2\n");
 	memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
-	printf("Print 3\n");
 	groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
-	printf("Print 4\n");
 	groupMembers(groupData);												// Monta estrutura do grupo
-	printf("Print 5\n");
 }
 
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
