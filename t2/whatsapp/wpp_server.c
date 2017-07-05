@@ -478,6 +478,7 @@ void groupMembers(char *groupData)
 		}
 		else
 		{
+			printf("hexa: %x\n", name[0]);
 			if(strlen(name) != 0)
 			{
 				printf("name[0]: %c\n", name[0]);
