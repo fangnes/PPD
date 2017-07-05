@@ -203,17 +203,17 @@ void parseCommand(char *cmd)
 					writeNoSentMessage(name, message);
 				else
 				{
-					sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
+					sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
 					sendGroupMessage(name, msg);
-					sprintf(msg, "(S) %s: %s", me.name, message);		// monta mensagem que sera colocada no arquivo com historicos de mensagens
-					writeSentMessage(name, msg);									// escreve a mensagem no arquivo
+					sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+					writeSentMessage(name, msg);					// escreve a mensagem no arquivo
 				}
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
 				memcpy(stMsg->message, msg, strlen(msg));
 				send_message_1(stMsg, online[i].cl);				// envia mensagem chamando procedimento remoto
 				sprintf(msg, "(S) %s: %s", me.name, message);		// monta mensagem que sera colocada no arquivo com historicos de mensagens
-				writeSentMessage(name, msg);									// escreve a mensagem no arquivo
+				writeSentMessage(name, msg);						// escreve a mensagem no arquivo
 			}
 			break;
 		case 'c':
@@ -546,18 +546,9 @@ int searchForGroups(char *groupName)
 {
 	int i, ret;
 
-	printf("groupName: %s\n", groupName);
-	printf("nGroups: %d\n", nGroups);
-
 	for(i = 0; i < nGroups; i++)
 	{
-		printf("\n\n\n\n");
-		printf("groupName: %s\n", groupName);
-		printf("strlen: %zu\n", strlen(groupName));
-		printf("groups[i].name: %s\n", groups[i].name);
-		printf("strlen: %zu\n", strlen(groups[i].name));
 		ret = strcmp(groupName, groups[i].name);
-		printf("ret: %d\n", ret);
 		if(strcmp(groupName, groups[i].name) == 0)
 			return i;
 	}
@@ -569,23 +560,14 @@ void sendGroupMessage(char *groupName, char *message)
 	int i, groupIndex;
 	struct stGroupMessage *gpMessage;
 
-	printf("e la vamos nós...\n");
-	printf("groupName: %s\n", groupName);
-	printf("message: %s\n", message);
-
 	gpMessage = (struct stGroupMessage*)malloc(sizeof(struct stGroupMessage));
 	memset(gpMessage, 0, sizeof(struct stGroupMessage));
 	memcpy(gpMessage->name, groupName, strlen(groupName));
 	memcpy(gpMessage->message, message, strlen(message));
 
-	printf("gpMessage->name: %s\n", gpMessage->name);
-	printf("gpMessage->message: %s\n", gpMessage->message);
 	groupIndex = searchForGroups(groupName);
-	printf("groupIndex: %d\n", groupIndex);
-	printf("groups[groupIndex].countMembers: %d\n", groups[groupIndex].countMembers);
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
-		printf("membro 1: %s\n", groups[groupIndex].gpCtts[i].ctt->name);
 		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
 		// TODO: implementar send_group_message_1
 	}
@@ -643,12 +625,6 @@ void *start_server_1_svc(void *pvoid, struct svc_req *rqstp)
 	loadOnlineContacts();
 	result = pthread_create(&mainThread, NULL, waitForCommand, NULL);
 	//waitForCommand();
-}
-
-
-void *ack_server_1_svc(void *pvoid, struct svc_req *rqstp)
-{
-	printf("CONNECTED OK\n");
 }
 
 void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
@@ -727,5 +703,17 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
 {
-	printf("MESSAGEM CHEGOOOU CARAAAI: %s\n", gpMsg->message);
+	FILE *conversationFile;
+	char *conversationFileName, *message;
+	int i;
+
+	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
+	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
+
+	printf("Message: %s\n", message);
+
+	sprintf(conversationFileName, "%s_%s.txt", me.name, gpMsg->name);	// forma char array que possui nome do arquivo de mensagens
+	conversationFile = fopen(conversationFileName, "a+");				// abre arquivo de mensagens
+	fprintf(conversationFile, "%s\n", gpMsg->message);
+	fclose(conversationFile);
 }
