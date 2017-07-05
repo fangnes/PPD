@@ -571,6 +571,7 @@ void sendGroupMessage(char *groupName, char *message)
 	memcpy(gpMessage->message, message, strlen(message));
 
 	groupIndex = searchForGroups(groupName);
+	printf("groups[groupIndex].countMembers: %d\n", groups[groupIndex].countMembers);
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
 		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
