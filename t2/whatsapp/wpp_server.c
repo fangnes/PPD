@@ -703,11 +703,6 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
 	groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
 	groupMembers(groupData);												// Monta estrutura do grupo
-
-	printf("MEMBROS DO GRUPO: \n");
-	for(i = 0; i < groups[nGroups].countMembers; i++)
-		printf("%s\n", groups[nGroups].gpCtts[i].ctt->name);
-
 	nGroups++;
 }
 
