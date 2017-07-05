@@ -478,6 +478,7 @@ void groupMembers(char *groupData)
 		else
 		{
 			if(name[0] != ' ')
+			{
 				if(memberIndex <= MAXUSERS)
 				{
 					printf("name: %s\n", name);
