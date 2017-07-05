@@ -704,13 +704,11 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
 {
 	FILE *conversationFile;
-	char *conversationFileName, *message;
+	char *conversationFileName;
 	int i;
 
-	conversationFileName = (char*)malloc((NAMESIZE * 2) + 1);
-	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
-
-	printf("Message: %s\n", message);
+	conversationFileName = (char*)malloc((NAMESIZE * 2) + 6);
+	memset(conversationFileName, 0, (NAMESIZE * 2) + 6);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, gpMsg->name);	// forma char array que possui nome do arquivo de mensagens
 	conversationFile = fopen(conversationFileName, "a+");				// abre arquivo de mensagens
