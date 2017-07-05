@@ -574,6 +574,7 @@ void sendGroupMessage(char *groupName, char *message)
 	printf("groups[groupIndex].countMembers: %d\n", groups[groupIndex].countMembers);
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
+		printf("Enviando para %s\n", groups[groupIndex].gpCtts[i].ctt->name);
 		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
 		// TODO: implementar send_group_message_1
 	}
