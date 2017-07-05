@@ -477,20 +477,22 @@ void groupMembers(char *groupData)
 		}
 		else
 		{
-			if(memberIndex <= MAXUSERS)
-			{
-				printf("name: %s\n", name);
-				contactIndex = searchForConnectedContacts(name);
-				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
-				groups[nGroups].countMembers++;
-				memberIndex++;
+			if(name[0] != ' ')
+				if(memberIndex <= MAXUSERS)
+				{
+					printf("name: %s\n", name);
+					contactIndex = searchForConnectedContacts(name);
+					memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
+					groups[nGroups].countMembers++;
+					memberIndex++;
+				}
+				else
+				{
+					printf("Numero maximo de participantes atingido\n");
+				}
+				nameIndex = 0;
+				memset(name, 0, NAMESIZE);
 			}
-			else
-			{
-				printf("Numero maximo de participantes atingido\n");
-			}
-			nameIndex = 0;
-			memset(name, 0, NAMESIZE);
 		}
 	}
 	nGroups++;
