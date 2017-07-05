@@ -157,6 +157,7 @@ void parseCommand(char *cmd)
 			groupName = getName(groupData);											// 'groupName' contém o nome do grupo
 			if(checkExistentGroup(groupName) == 1)
 			{
+				printf("here\n");
 				memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
 				groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
 				groupMembers(groupData);												// Monta estrutura do grupo
