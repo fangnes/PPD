@@ -478,6 +478,7 @@ void groupMembers(char *groupData)
 		{
 			if(memberIndex <= MAXUSERS)
 			{
+				printf("name: %s\n", name);
 				contactIndex = searchForConnectedContacts(name);
 				memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
 				groups[nGroups].countMembers++;
