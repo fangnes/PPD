@@ -165,8 +165,10 @@ void parseCommand(char *cmd)
 			else
 				printf("Grupo ja existente.\n");
 
+			printf("\n\n");
 			for(i = 0; i < nGroups; i++)
 				printf("Group name: %s\n", groups[i].name);
+			printf("\n\n");
 			break;
 		case 'l':
 			name = (char*)malloc(NAMESIZE);
