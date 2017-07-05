@@ -203,9 +203,10 @@ void parseCommand(char *cmd)
 					writeNoSentMessage(name, message);
 				else
 				{
-					printf("name: %s\n", name);
-					printf("message: %s\n", message);
-					sendGroupMessage(name, message);
+					sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
+					sendGroupMessage(name, msg);
+					sprintf(msg, "(S) %s: %s", me.name, message);		// monta mensagem que sera colocada no arquivo com historicos de mensagens
+					writeSentMessage(name, msg);									// escreve a mensagem no arquivo
 				}
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
