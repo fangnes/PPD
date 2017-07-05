@@ -726,5 +726,5 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
 {
-	printf("MESSAGEM CHEGOOOU CARAAAI: %s", gpMsg->message);
+	printf("MESSAGEM CHEGOOOU CARAAAI: %s\n", gpMsg->message);
 }
