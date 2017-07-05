@@ -207,7 +207,8 @@ void parseCommand(char *cmd)
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
 				// TODO: verificar se a mensagem não é para um grupo
 				i = searchForGroups(name);
-				printf("here: %d\n", i);
+				printf("name: %s\n", name);
+				printf("i: %d\n", i);
 				if(i == -1)
 					writeNoSentMessage(name, message);
 				else
@@ -552,8 +553,10 @@ int searchForGroups(char *groupName)
 {
 	int i;
 
+	printf("name inside function: %s\n", groupName);
 	for(i = 0; i < nGroups; i++)
 	{
+		printf("-> %s\n", groups[i].name);
 		if(strcmp(groupName, groups[i].name) == 0)
 			return i;
 	}
