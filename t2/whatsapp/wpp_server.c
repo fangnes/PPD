@@ -159,6 +159,7 @@ void parseCommand(char *cmd)
 			{
 				printf("here\n");
 				memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
+				printf("groups[nGroups].name: %s\n", groups[nGroups].name);
 				groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
 				groupMembers(groupData);												// Monta estrutura do grupo
 				sendGroupRequest(groupName);											// Envia requisições para integrantes do grupo também criarem o grupo localmente
