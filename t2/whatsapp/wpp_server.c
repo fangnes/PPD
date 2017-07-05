@@ -203,10 +203,15 @@ void parseCommand(char *cmd)
 					writeNoSentMessage(name, message);
 				else
 				{
+					printf("1.1\n");
 					sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
+					printf("1.2\n");
 					sendGroupMessage(name, msg);
+					printf("1.3\n");
 					sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
+					printf("1.4\n");
 					writeSentMessage(name, msg);					// escreve a mensagem no arquivo
+					printf("1.5\n");
 				}
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
@@ -707,11 +712,17 @@ void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqs
 	char *conversationFileName;
 	int i;
 
+	printf("2.1\n");
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 6);
+	printf("2.2\n");
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 6);
-
+	printf("2.3\n");
 	sprintf(conversationFileName, "%s_%s.txt", me.name, gpMsg->name);	// forma char array que possui nome do arquivo de mensagens
+	printf("2.4\n");
 	conversationFile = fopen(conversationFileName, "a+");				// abre arquivo de mensagens
+	printf("2.5\n");
 	fprintf(conversationFile, "%s\n", gpMsg->message);
+	printf("2.6\n");
 	fclose(conversationFile);
+	printf("2.7\n");
 }
