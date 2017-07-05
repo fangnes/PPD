@@ -550,6 +550,11 @@ int searchForGroups(char *groupName)
 
 	for(i = 0; i < nGroups; i++)
 	{
+		printf("\n\n\n\n");
+		printf("groupName: %s\n", groupName);
+		printf("strlen: %zu\n", strlen(groupName));
+		printf("groups[i].name: %s\n", groups[i].name);
+		printf("strlen: %zu\n", strlen(groups[i].name));
 		if(strcmp(groupName, groups[i].name) == 0)
 			return i;
 	}
