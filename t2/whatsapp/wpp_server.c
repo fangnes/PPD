@@ -478,9 +478,10 @@ void groupMembers(char *groupData)
 		}
 		else
 		{
-			if(name[0] != ' ')
+			if(name[0] != ' ' && name[0] != NULL)
 			{
 				printf("name[0]: %c\n", name[0]);
+				printf("strlen(name): %zu\n", strlen(name));
 				if(memberIndex <= MAXUSERS)
 				{
 					printf("name: %s\n", name);
