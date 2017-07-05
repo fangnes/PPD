@@ -180,8 +180,6 @@ void parseCommand(char *cmd)
 			}
 			break;
 		case 's':
-			
-			printf("cmd: %s\n", cmd);
 
 			name = (char*)malloc(NAMESIZE);
 			message = (char*)malloc(MSGSIZE);
@@ -202,10 +200,12 @@ void parseCommand(char *cmd)
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
 				// TODO: verificar se a mensagem não é para um grupo
 				i = searchForGroups(name);
+				printf("here: %d\n", i);
 				if(i == -1)
 					writeNoSentMessage(name, message);
 				else
 				{
+					printf("Group found!\n");
 					//TODO: chamar funcao que envia mensagem para membros do grupo
 				}
 			}else{
