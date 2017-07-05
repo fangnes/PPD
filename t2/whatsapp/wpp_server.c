@@ -472,6 +472,7 @@ void groupMembers(char *groupData)
 		printf("-> %c\n", groupData[i]);
 		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
+			printf("entrei\n");
 			name[nameIndex] = groupData[i];
 			nameIndex++;
 		}
@@ -479,6 +480,7 @@ void groupMembers(char *groupData)
 		{
 			if(name[0] != ' ')
 			{
+				printf("name[0]: %c\n", name[0]);
 				if(memberIndex <= MAXUSERS)
 				{
 					printf("name: %s\n", name);
