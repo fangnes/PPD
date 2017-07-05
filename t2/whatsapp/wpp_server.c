@@ -469,9 +469,9 @@ void groupMembers(char *groupData)
 
 	for(i = 0; i < strlen(groupData) + 1; i++)
 	{
+		printf("-> %c\n", groupData[i]);
 		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
-			printf("-> %c\n", groupData[i]);
 			name[nameIndex] = groupData[i];
 			nameIndex++;
 		}
