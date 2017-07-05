@@ -34,13 +34,12 @@ struct stContact
 program WPPPROG {
 	version WPPVERS {
 		void START_SERVER(void) 				= 1;
-		void ACK_SERVER(void)					= 2;
-		void SEND_MESSAGE(stMessage)			= 3;
-		int ADD_REQUEST(stContact) 				= 4;
-		void READ_MESSAGE(void)					= 5;
-		void I_AM_ONLINE(stContact)				= 6;
-		void GROUP_REQUEST(stMessage)			= 7;
-		void SEND_GROUP_MESSAGE(stGroupMessage)	= 8;
+		void SEND_MESSAGE(stMessage)			= 2;
+		int ADD_REQUEST(stContact) 				= 3;
+		void READ_MESSAGE(void)					= 4;
+		void I_AM_ONLINE(stContact)				= 5;
+		void GROUP_REQUEST(stMessage)			= 6;
+		void SEND_GROUP_MESSAGE(stGroupMessage)	= 7;
 	} = 1;
 
 } = 0x20000003;
