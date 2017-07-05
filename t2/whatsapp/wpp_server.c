@@ -158,18 +158,12 @@ void parseCommand(char *cmd)
 			if(checkExistentGroup(groupName) == 1)
 			{
 				memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
-				printf("groups[nGroups].name: %s\n", groups[nGroups].name);
 				groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
 				groupMembers(groupData);												// Monta estrutura do grupo
 				sendGroupRequest(groupName);											// Envia requisições para integrantes do grupo também criarem o grupo localmente
 			}
 			else
 				printf("Grupo ja existente.\n");
-
-			printf("\n\n");
-			for(i = 0; i < nGroups; i++)
-				printf("Group name: %s\n", groups[i].name);
-			printf("\n\n");
 			break;
 		case 'l':
 			name = (char*)malloc(NAMESIZE);
@@ -204,16 +198,14 @@ void parseCommand(char *cmd)
 			i = searchForConnectedContacts(name);					// Procura pelo index do contato no array de contatos 'online'
 			if(i == -1){											// verifica se o contato está na lista de conectados
 				// TODO: verificar se 'name' é um contato (verificar em contacts.txt)	
-				// TODO: verificar se a mensagem não é para um grupo
 				i = searchForGroups(name);
-				printf("name: %s\n", name);
-				printf("i: %d\n", i);
 				if(i == -1)
 					writeNoSentMessage(name, message);
 				else
 				{
-					printf("Group found!\n");
-					//TODO: chamar funcao que envia mensagem para membros do grupo
+					printf("name: %s\n", name);
+					printf("message: %s\n", message);
+					sendGroupMessage(name, message);
 				}
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
@@ -553,13 +545,8 @@ int searchForGroups(char *groupName)
 {
 	int i;
 
-	printf("name inside function: %s\n", groupName);
-	printf("strlenhe: %zu\n", strlen(groupName));
-	printf("nGroups: \n");
 	for(i = 0; i < nGroups; i++)
 	{
-		printf("-> %s\n", groups[i].name);
-		printf("strlen: %zu\n", strlen(groups[i].name));
 		if(strcmp(groupName, groups[i].name) == 0)
 			return i;
 	}
