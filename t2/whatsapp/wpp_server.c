@@ -708,5 +708,5 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 
 void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqstp)
 {
-	// TODO: implementar gravacao da mensagem recebida no arquivo do grupo
+	printf("MESSAGEM CHEGOOOU CARAAAI: %s", gpMsg->message);
 }
