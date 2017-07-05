@@ -558,15 +558,23 @@ void sendGroupMessage(char *groupName, char *message)
 	int i, groupIndex;
 	struct stGroupMessage *gpMessage;
 
+	printf("e la vamos nós...\n");
+	printf("groupName: %s\n", groupName);
+	printf("message: %s\n", message);
+
 	gpMessage = (struct stGroupMessage*)malloc(sizeof(struct stGroupMessage));
 	memset(gpMessage, 0, sizeof(struct stGroupMessage));
 	memcpy(gpMessage->name, groupName, strlen(groupName));
 	memcpy(gpMessage->message, message, strlen(message));
 
+	printf("gpMessage->name: %s\n", gpMessage->name);
+	printf("gpMessage->message: %s\n", gpMessage->message);
 	groupIndex = searchForGroups(groupName);
-
+	printf("groupIndex: %d\n", groupIndex);
+	printf("groups[groupIndex].countMembers: %d\n", groups[groupIndex].countMembers);
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
+		printf("membro 1: %s\n", groups[groupIndex].gpCtts[i].ctt->name);
 		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
 		// TODO: implementar send_group_message_1
 	}
