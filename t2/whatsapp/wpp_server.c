@@ -543,7 +543,7 @@ int checkExistentGroup(char *groupName)
 
 int searchForGroups(char *groupName)
 {
-	int i;
+	int i, ret;
 
 	printf("groupName: %s\n", groupName);
 	printf("nGroups: %d\n", nGroups);
@@ -555,6 +555,8 @@ int searchForGroups(char *groupName)
 		printf("strlen: %zu\n", strlen(groupName));
 		printf("groups[i].name: %s\n", groups[i].name);
 		printf("strlen: %zu\n", strlen(groups[i].name));
+		ret = strcmp(groupName, groups[i].name);
+		printf("ret: %d\n", ret);
 		if(strcmp(groupName, groups[i].name) == 0)
 			return i;
 	}
