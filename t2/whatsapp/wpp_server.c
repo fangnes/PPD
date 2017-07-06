@@ -59,7 +59,7 @@ void parseCommand(char *cmd);							// Faz a depuracao do comando e executa ele
 char *adjustPointer(char *array, int pos);				// Ajusta o ponteiro de inicio do array
 struct stContact *contactData(char *contactData);		// Coloca dados do array em uma struct stContact
 void addContact(struct stContact *ctt);					// Adiciona contato no arquivo local
-void connectToContact(struct stContact *ctt);			// Tenta conectar (virar cliente) do contato
+int connectToContact(struct stContact *ctt);			// Tenta conectar (virar cliente) do contato
 int checkExistentContact(struct stContact *ctt);		// Verifica se contato ja existe na lista de contatos
 char *getName(char *array);								// Extrai nome do array
 int searchForConnectedContacts(char *name);				// Procura contato conectado pelo nome, retorna o indice desse contato em online[MAXUSERS]
@@ -203,15 +203,10 @@ void parseCommand(char *cmd)
 					writeNoSentMessage(name, message);
 				else
 				{
-					printf("1.1\n");
 					sprintf(msg, "%s: %s", me.name, message);		// coloca a mensagem na estrutura que sera enviada ao contato
-					printf("1.2\n");
 					sendGroupMessage(name, msg);
-					printf("1.3\n");
 					sprintf(msg, "(S) %s: %s", me.name, message);	// monta mensagem que sera colocada no arquivo com historicos de mensagens
-					printf("1.4\n");
 					writeSentMessage(name, msg);					// escreve a mensagem no arquivo
-					printf("1.5\n");
 				}
 			}else{
 				sprintf(msg, "%s: %s", me.name, message);			// coloca a mensagem na estrutura que sera enviada ao contato
@@ -293,16 +288,18 @@ void addContact(struct stContact *ctt)
 }
 
 // Rotina que tenta conectar a um determinado contato
-void connectToContact(struct stContact *ctt)
+int connectToContact(struct stContact *ctt)
 {
 	void *pvoid;
 
 	if(!(online[nContacts].cl = clnt_create(ctt->ip, WPPPROG, WPPVERS, "tcp"))){
 		clnt_pcreateerror(ctt->ip);
 		printf("ERROR do add %s to contacts\n", ctt->name);
+		return -1;
 	}else{
 		online[nContacts].ctt = ctt;
 		nContacts++;
+		return 0;
 	}
 }
 
@@ -378,6 +375,7 @@ void loadOnlineContacts()
 	ssize_t read;
 	size_t len = 0;
 	char *cttData;
+	int memberIndex;
 	FILE *contactsFile;
 	struct stContact *ctt;
 
@@ -388,7 +386,11 @@ void loadOnlineContacts()
 		while((read = getline(&cttData, &len, contactsFile)) != -1)	// percorre o arquivo linha por linha
 		{
 			ctt = contactData(cttData);								// coloca informacoes extraidas do arquivo em uma estrutura 'ctt'
-			connectToContact(ctt);								// tenta conectar no contato
+			if(connectToContact(ctt) != -1)								// tenta conectar no contato
+			{
+				memberIndex = searchForConnectedContacts(ctt->name);
+				i_am_online_1(&me, online[memberIndex].cl);
+			}
 		}
 	}
 }
@@ -469,23 +471,17 @@ void groupMembers(char *groupData)
 
 	for(i = 0; i < strlen(groupData) + 1; i++)
 	{
-		printf("-> %c\n", groupData[i]);
 		if(groupData[i] != ' ' && groupData[i] != '\0')
 		{
-			printf("entrei\n");
 			name[nameIndex] = groupData[i];
 			nameIndex++;
 		}
 		else
 		{
-			printf("hexa: %x\n", name[0]);
 			if(strlen(name) != 0)
 			{
-				printf("name[0]: %c\n", name[0]);
-				printf("strlen(name): %zu\n", strlen(name));
 				if(memberIndex <= MAXUSERS)
 				{
-					printf("name: %s\n", name);
 					contactIndex = searchForConnectedContacts(name);
 					memcpy(&groups[nGroups].gpCtts[memberIndex], &online[contactIndex], sizeof(struct stConnectedContacts));
 					groups[nGroups].countMembers++;
@@ -580,10 +576,8 @@ void sendGroupMessage(char *groupName, char *message)
 	memcpy(gpMessage->message, message, strlen(message));
 
 	groupIndex = searchForGroups(groupName);
-	printf("groups[groupIndex].countMembers: %d\n", groups[groupIndex].countMembers);
 	for(i = 0; i < groups[groupIndex].countMembers; i++)
 	{
-		printf("Enviando para %s\n", groups[groupIndex].gpCtts[i].ctt->name);
 		send_group_message_1(gpMessage, groups[groupIndex].gpCtts[i].cl);
 		// TODO: implementar send_group_message_1
 	}
@@ -695,7 +689,7 @@ void *read_message_1_svc(void *pvoid, struct svc_req *rqstp)
 
 void *i_am_online_1_svc(struct stContact *ctt, struct svc_req *rqstp)
 {
-	// TODO: enviar notificação de que estou online
+	connectToContact(ctt);
 }
 
 void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
@@ -725,17 +719,10 @@ void *send_group_message_1_svc(struct stGroupMessage *gpMsg, struct svc_req *rqs
 	char *conversationFileName;
 	int i;
 
-	printf("2.1\n");
 	conversationFileName = (char*)malloc((NAMESIZE * 2) + 6);
-	printf("2.2\n");
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 6);
-	printf("2.3\n");
 	sprintf(conversationFileName, "%s_%s.txt", me.name, gpMsg->name);	// forma char array que possui nome do arquivo de mensagens
-	printf("2.4\n");
 	conversationFile = fopen(conversationFileName, "a+");				// abre arquivo de mensagens
-	printf("2.5\n");
 	fprintf(conversationFile, "%s\n", gpMsg->message);
-	printf("2.6\n");
 	fclose(conversationFile);
-	printf("2.7\n");
 }
