@@ -719,8 +719,6 @@ void *group_request_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 
 	memcpy(groupData, msg->message, strlen(msg->message));
 
-	printf("groupData: %s\n", groupData);
-
 	groupName = getName(groupData);											// 'groupName' contém o nome do grupo
 	memcpy(groups[nGroups].name, groupName, strlen(groupName));				// Coloca nome do grupo na estrutura referente ao grupo
 	groupData = adjustPointer(groupData, strlen(groupName) + 1);			// Ajusta ponteiro de 'groupData' para pular o nome do grupo
