@@ -74,6 +74,7 @@ void sendGroupRequest(char *groupName);					// Solicita ao 'ctt' para criar o gr
 int checkExistentGroup(char *groupName);				// Verifica se o grupo ja existe
 int searchForGroups(char *groupName);					// Procura grupo pelo nome, retorna o indice desse contato em groups[MAXGROUPS]
 void sendGroupMessage(char *groupName, char *message);	// Envia mensagem para o grupo
+void writeGroupConfig(char *groupData);					// Escreve em um arquivo nome do grupo e todos os integrantes
 
 // Rotina que le o comando
 void *waitForCommand()
@@ -388,8 +389,9 @@ void loadOnlineContacts()
 			ctt = contactData(cttData);								// coloca informacoes extraidas do arquivo em uma estrutura 'ctt'
 			if(connectToContact(ctt) != -1)								// tenta conectar no contato
 			{
-				memberIndex = searchForConnectedContacts(ctt->name);
-				i_am_online_1(&me, online[memberIndex].cl);
+				// TODO: implementar i_am_online_1
+				//memberIndex = searchForConnectedContacts(ctt->name);
+				//i_am_online_1(&me, online[memberIndex].cl);
 			}
 		}
 	}
@@ -582,6 +584,20 @@ void sendGroupMessage(char *groupName, char *message)
 		// TODO: implementar send_group_message_1
 	}
 }
+
+void writeGroupConfig(char *groupData)
+{
+	char *name;
+	FILE *groupFile;
+
+	name = (char*)malloc(NAMESIZE + 6);
+	sprintf(name, "_%s.txt", getName(groupData));
+
+	groupFile = fopen(name, "a+");
+	fprintf(groupFile, "%s\n", groupData);
+	fclose(groupFile);
+}
+
 /*****************************************************************************************/
 /*****************************************************************************************/
 /*****************************************************************************************/
@@ -651,7 +667,6 @@ void *send_message_1_svc(struct stMessage *msg, struct svc_req *rqstp)
 	memset(conversationFileName, 0, (NAMESIZE * 2) + 1);
 
 	memcpy(message, msg->message, strlen(msg->message));
-	printf("Message: %s\n", message);
 	name = getName(msg->message);
 
 	sprintf(conversationFileName, "%s_%s.txt", me.name, name);	// forma char array que possui nome do arquivo de mensagens
